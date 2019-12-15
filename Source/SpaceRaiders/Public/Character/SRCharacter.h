@@ -63,7 +63,7 @@ protected:
 	void BeginCrouch();
 	void EndCrouch();
 	bool bToggleCrouch = false;
-
+	bool bFakeVariablelol;
 	//Movement Status
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	EMovementStatus MovementStatus;

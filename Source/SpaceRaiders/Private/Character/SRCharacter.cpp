@@ -35,6 +35,7 @@ ASRCharacter::ASRCharacter()
 	// Input Properties
 	bIsMovingForward = false;
 	bIsMovingRight = false;
+	bFakeVariablelol = true;
 }
 
 // Called when the game starts or when spawned

@@ -4,13 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "SRCharacter.h"
 #include "SRCharacterAnimInstance.generated.h"
+
 
 /**
  * 
  */
 
 class APawn;
+class ASRCharacter;
 
 UCLASS()
 class SPACERAIDERS_API USRCharacterAnimInstance : public UAnimInstance
@@ -18,6 +21,7 @@ class SPACERAIDERS_API USRCharacterAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 
 protected:
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float Direction;
 
@@ -30,15 +34,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float MovementSpeedY;
 
-	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool bIsInAir;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
 	APawn* Pawn;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
+	ASRCharacter* Character;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
+	EMovementStatus MovementStatus;
+
 	UFUNCTION(BlueprintCallable, Category = "Animation Properties")
 	void UpdateAnimationProperties();
+
+
 	
 public:
 

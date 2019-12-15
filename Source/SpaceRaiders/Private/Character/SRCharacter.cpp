@@ -35,7 +35,10 @@ ASRCharacter::ASRCharacter()
 	// Input Properties
 	bIsMovingForward = false;
 	bIsMovingRight = false;
-	bFakeVariablelol = true;
+
+	// Replication Variables
+	SetReplicateMovement(true);
+	SetReplicates(true);
 }
 
 // Called when the game starts or when spawned
@@ -68,6 +71,7 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 }
 
+
 void ASRCharacter::MoveForward(float value)
 {
 	AddMovementInput(GetActorForwardVector() * value);
@@ -77,11 +81,30 @@ void ASRCharacter::MoveForward(float value)
 	{
 		//...then player is moving forward
 		bIsMovingForward = true;
-		//...if player moving forward and not sprinting...
-		if(MovementStatus != EMovementStatus::EMS_Sprinting)
+
+		// If Player is just pressing S...
+		if (value < 0)
 		{
-			//...then player is jogging
-			SetMovementStatus(EMovementStatus::EMS_Jogging);
+			//...and is sprinting...
+			if (MovementStatus == EMovementStatus::EMS_Sprinting)
+			{
+				//then stop the player from sprinting [you can't spring backwards]
+				SetMovementStatus(EMovementStatus::EMS_Jogging);
+			}
+			else
+			{
+				SetMovementStatus(EMovementStatus::EMS_Jogging);
+			}
+		}
+		// if the player is just pressing W...
+		else
+		{
+			//...and player is moving forward and not sprinting...
+			if (MovementStatus != EMovementStatus::EMS_Sprinting)
+			{
+				//...then player is jogging
+				SetMovementStatus(EMovementStatus::EMS_Jogging);
+			}
 		}
 	}
 	//If Player is not pressing W/S...
@@ -90,11 +113,18 @@ void ASRCharacter::MoveForward(float value)
 		//...then player is not moving forward
 		bIsMovingForward = false;
 	}
+	
 	//If Player is not moving forward and not moving right...
 	if(!bIsMovingForward && !bIsMovingRight)
 	{
 		//...then player is idling
 		SetMovementStatus(EMovementStatus::EMS_Idling);
+	}
+	//If player is not moving forward but is moving right...
+	else if(!bIsMovingForward && bIsMovingRight)
+	{
+		//...then the player is jogging
+		SetMovementStatus(EMovementStatus::EMS_Jogging);
 	}
 
 }
@@ -171,6 +201,11 @@ void ASRCharacter::SetMovementStatus(EMovementStatus Status)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 	}
+}
+
+EMovementStatus ASRCharacter::GetMovementStatus()
+{
+	return MovementStatus;
 }
 
 void ASRCharacter::StartSprint()

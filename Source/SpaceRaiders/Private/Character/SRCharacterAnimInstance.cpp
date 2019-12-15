@@ -5,6 +5,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Math/UnrealMathUtility.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "public/Character/SRCharacter.h"
 
 void USRCharacterAnimInstance::NativeInitializeAnimation()
 {
@@ -32,16 +33,29 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 		MovementSpeed = LateralSpeed.Size();
 	
 		bIsInAir = Pawn->GetMovementComponent()->IsFalling();
-
-		
-		
+			
 		//Calculate Direction 
 		Direction = CalculateDirection(Speed, Pawn->GetActorRotation());
 		Direction = FMath::Clamp(Direction, -175.0f, 175.0f);
+
+		// Casting to SRCharacter in order to obtain the Movement Status Enum inside ASR Character
+		Character = Cast<ASRCharacter>(Pawn);
+		
+		if(Character != nullptr)
+		{
+			MovementStatus = Character->GetMovementStatus();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Character Cast Failed"));
+
+			Character = Cast<ASRCharacter>(Pawn);
+		}
+		
+
 	}
 	else
 	{
 		Pawn = TryGetPawnOwner();
 	}	
 }
-

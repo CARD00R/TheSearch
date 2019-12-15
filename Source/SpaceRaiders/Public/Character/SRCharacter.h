@@ -63,15 +63,15 @@ protected:
 	void BeginCrouch();
 	void EndCrouch();
 	bool bToggleCrouch = false;
-	bool bFakeVariablelol;
+
 	//Movement Status
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	EMovementStatus MovementStatus;
 	FORCEINLINE void SetMovementStatus(EMovementStatus Status);
 
 	//Movement Properties
-	float JogSpeed = 450.0f;
-	float SprintSpeed = 750.0f;
+	float JogSpeed = 500.0f;
+	float SprintSpeed = 850.0f;
 
 	// Sprint
 	void StartSprint();
@@ -87,5 +87,7 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	FORCEINLINE EMovementStatus GetMovementStatus();
 
 };

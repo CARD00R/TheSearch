@@ -4,6 +4,7 @@
 #include "Public/Character/SRCharacterAnimInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Math/UnrealMathUtility.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void USRCharacterAnimInstance::NativeInitializeAnimation()
 {
@@ -21,9 +22,18 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 		//Calculate Movement Speed
 		FVector Speed = Pawn->GetVelocity();
 		FVector LateralSpeed = FVector(Speed.X, Speed.Y, 0);
-		MovementSpeed = LateralSpeed.Size();
+		FTransform MeshTransform = GetSkelMeshComponent()->GetComponentTransform();
 
+		// Obtain horizontal Speed (Inversed [-1])
+		MovementSpeedX = (UKismetMathLibrary::InverseTransformDirection(MeshTransform, Speed).X)*-1.0f;
+		// Obtain Vertical Speed
+		MovementSpeedY = UKismetMathLibrary::InverseTransformDirection(MeshTransform, Speed).Y;
+		// Obtain Directional Speed
+		MovementSpeed = LateralSpeed.Size();
+	
 		bIsInAir = Pawn->GetMovementComponent()->IsFalling();
+
+		
 		
 		//Calculate Direction 
 		Direction = CalculateDirection(Speed, Pawn->GetActorRotation());
@@ -34,3 +44,4 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 		Pawn = TryGetPawnOwner();
 	}	
 }
+

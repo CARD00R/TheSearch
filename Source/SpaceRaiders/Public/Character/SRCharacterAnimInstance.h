@@ -20,10 +20,17 @@ class SPACERAIDERS_API USRCharacterAnimInstance : public UAnimInstance
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float Direction;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float MovementSpeed;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float MovementSpeedX;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float MovementSpeedY;
+
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool bIsInAir;
 
@@ -36,7 +43,5 @@ protected:
 public:
 
 	virtual void NativeInitializeAnimation() override;
-	
-
 	
 };

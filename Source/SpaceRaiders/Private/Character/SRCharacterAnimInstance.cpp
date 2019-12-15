@@ -43,7 +43,7 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 		
 		if(Character != nullptr)
 		{
-			MovementStatus = Character->GetMovementStatus();
+			MovementStatus = Character->GetStandingMovementStatus();
 		}
 		else
 		{

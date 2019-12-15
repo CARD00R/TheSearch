@@ -12,13 +12,28 @@ class UCameraComponent;
 class APlayerController;
 
 UENUM(BlueprintType)
-enum class EMovementStatus : uint8
+enum class EStanceStatus : uint8
 {
-	EMS_Idling UMETA(DisplayName = "Idling"),
-	EMS_Jogging UMETA(DisplayName = "Jogging"),
-	EMS_Sprinting UMETA(DisplayName = "Sprinting"),
-	EMS_Death UMETA(DisplayName = "Dead"),
-	EMS_MAX UMETA(DisplayName = "DefaultMax")
+	ESS_Standing UMETA(DisplayName = "Standing"),
+	ESS_Crouching UMETA(DisplayName = "Crouching"),
+	ESS_MAX UMETA(DisplayName = "DefaultMax")
+};
+
+UENUM(BlueprintType)
+enum class EStandingMovementStatus : uint8
+{
+	ESMS_Idling UMETA(DisplayName = "Idling"),
+	ESMS_Jogging UMETA(DisplayName = "Jogging"),
+	ESMS_Sprinting UMETA(DisplayName = "Sprinting"),
+	ESMS_MAX UMETA(DisplayName = "DefaultMax")
+};
+
+UENUM(BlueprintType)
+enum class ECrouchingMovementStatus : uint8
+{
+	ECMS_Idling UMETA(DisplayName = "Idling"),
+	ECMS_Walking UMETA(DisplayName = "Walking"),
+	ECMS_MAX UMETA(DisplayName = "DefaultMax")
 };
 
 UCLASS()
@@ -64,14 +79,27 @@ protected:
 	void EndCrouch();
 	bool bToggleCrouch = false;
 
-	//Movement Status
+	// Stance Status
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
-	EMovementStatus MovementStatus;
-	FORCEINLINE void SetMovementStatus(EMovementStatus Status);
+	EStanceStatus StanceStatus;
+	FORCEINLINE void SetStanceStatus(EStanceStatus Status);
+	
+	//Standing Movement Status
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+	EStandingMovementStatus StandingMovementStatus;
+	FORCEINLINE void SetStandingMovementStatus(EStandingMovementStatus Status);
 
+	//Crouching Movement Status
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+	ECrouchingMovementStatus CrouchingMovementStatus;
+	FORCEINLINE void SetCrouchingMovementStatus(ECrouchingMovementStatus Status);
+	
+	
 	//Movement Properties
-	float JogSpeed = 500.0f;
-	float SprintSpeed = 850.0f;
+	float JogSpeed = 600.0f;
+	float DiagonalSprintSpeed = 735.0f;
+	float SprintSpeed = DefaultSprintSpeed;
+	float DefaultSprintSpeed = 900.0f;
 
 	// Sprint
 	void StartSprint();
@@ -88,6 +116,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	FORCEINLINE EMovementStatus GetMovementStatus();
-
+	FORCEINLINE EStanceStatus GetStanceStatus();
+	FORCEINLINE EStandingMovementStatus GetStandingMovementStatus();
+	FORCEINLINE ECrouchingMovementStatus GetCrouchingMovementStatus();
 };

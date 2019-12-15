@@ -86,24 +86,38 @@ void ASRCharacter::MoveForward(float value)
 		if (value < 0)
 		{
 			//...and is sprinting...
-			if (MovementStatus == EMovementStatus::EMS_Sprinting)
+			if (StandingMovementStatus == EStandingMovementStatus::ESMS_Sprinting)
 			{
 				//then stop the player from sprinting [you can't spring backwards]
-				SetMovementStatus(EMovementStatus::EMS_Jogging);
+				SetStandingMovementStatus(EStandingMovementStatus::ESMS_Jogging);
 			}
 			else
 			{
-				SetMovementStatus(EMovementStatus::EMS_Jogging);
+				SetStandingMovementStatus(EStandingMovementStatus::ESMS_Jogging);
 			}
 		}
 		// if the player is just pressing W...
 		else
 		{
+			//...and player is moving forward and sprinting...
+			if (StandingMovementStatus == EStandingMovementStatus::ESMS_Sprinting)
+			{
+				if (bIsMovingRight)
+				{
+					SprintSpeed = DiagonalSprintSpeed;
+					SetStandingMovementStatus(EStandingMovementStatus::ESMS_Sprinting);
+				}
+				else
+				{
+					SprintSpeed = DefaultSprintSpeed;
+					SetStandingMovementStatus(EStandingMovementStatus::ESMS_Sprinting);
+				}
+			}
 			//...and player is moving forward and not sprinting...
-			if (MovementStatus != EMovementStatus::EMS_Sprinting)
+			else
 			{
 				//...then player is jogging
-				SetMovementStatus(EMovementStatus::EMS_Jogging);
+				SetStandingMovementStatus(EStandingMovementStatus::ESMS_Jogging);
 			}
 		}
 	}
@@ -118,13 +132,13 @@ void ASRCharacter::MoveForward(float value)
 	if(!bIsMovingForward && !bIsMovingRight)
 	{
 		//...then player is idling
-		SetMovementStatus(EMovementStatus::EMS_Idling);
+		SetStandingMovementStatus(EStandingMovementStatus::ESMS_Idling);
 	}
 	//If player is not moving forward but is moving right...
 	else if(!bIsMovingForward && bIsMovingRight)
 	{
 		//...then the player is jogging
-		SetMovementStatus(EMovementStatus::EMS_Jogging);
+		SetStandingMovementStatus(EStandingMovementStatus::ESMS_Jogging);
 	}
 
 }
@@ -139,10 +153,10 @@ void ASRCharacter::MoveRight(float value)
 		//...then player is moving right
 		bIsMovingRight = true;
 		//...if player moving right and not sprinting...
-		if (MovementStatus != EMovementStatus::EMS_Sprinting)
+		if (StandingMovementStatus != EStandingMovementStatus::ESMS_Sprinting)
 		{
 			//...then the player is jogging
-			SetMovementStatus(EMovementStatus::EMS_Jogging);
+			SetStandingMovementStatus(EStandingMovementStatus::ESMS_Jogging);
 		}
 	}
 	//If player is not pressing S/D
@@ -188,40 +202,79 @@ void ASRCharacter::EndCrouch()
 	UnCrouch();
 }
 
-void ASRCharacter::SetMovementStatus(EMovementStatus Status)
+void ASRCharacter::SetStanceStatus(EStanceStatus Status)
 {
-	//Set movement status to the input status
-	MovementStatus = Status;
+	//Set Stance movement status to the input status
+	StanceStatus = Status;
+	
+	if (StanceStatus == EStanceStatus::ESS_Standing)
+	{
 
-	if (MovementStatus == EMovementStatus::EMS_Jogging)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
 	}
-	else if (MovementStatus == EMovementStatus::EMS_Sprinting)
+	else if (StanceStatus == EStanceStatus::ESS_Crouching)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+
 	}
 }
 
-EMovementStatus ASRCharacter::GetMovementStatus()
+void ASRCharacter::SetStandingMovementStatus(EStandingMovementStatus Status)
 {
-	return MovementStatus;
+	//Set Standing movement status to the input status
+	StandingMovementStatus = Status;
+
+	if (StandingMovementStatus == EStandingMovementStatus::ESMS_Jogging)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
+	}
+	else if (StandingMovementStatus == EStandingMovementStatus::ESMS_Sprinting)
+	{
+		if(bIsMovingRight)
+		{
+			GetCharacterMovement()->MaxWalkSpeed = DiagonalSprintSpeed;
+		}
+		else
+		{
+			GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+		}
+
+	}
+}
+
+void ASRCharacter::SetCrouchingMovementStatus(ECrouchingMovementStatus Status)
+{
+	//Set Crouching movement status to the input status
+	CrouchingMovementStatus = Status;
+
+	if (CrouchingMovementStatus == ECrouchingMovementStatus::ECMS_Idling)
+	{
+
+	}
+	else if (CrouchingMovementStatus == ECrouchingMovementStatus::ECMS_Walking)
+	{
+
+	}
+}
+
+EStandingMovementStatus ASRCharacter::GetStandingMovementStatus()
+{
+	return StandingMovementStatus;
 }
 
 void ASRCharacter::StartSprint()
 {
-	SetMovementStatus(EMovementStatus::EMS_Sprinting);
+	SetStandingMovementStatus(EStandingMovementStatus::ESMS_Sprinting);
 }
 
 void ASRCharacter::EndSprint()
 {
-	SetMovementStatus(EMovementStatus::EMS_Jogging);
+	SetStandingMovementStatus(EStandingMovementStatus::ESMS_Jogging);
 }
 
 void ASRCharacter::FreeLookOn()
 {
 	bUseControllerRotationYaw = false;
 }
+
 void ASRCharacter::FreeLookOff()
 {
 	bUseControllerRotationYaw = true;

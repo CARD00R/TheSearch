@@ -43,8 +43,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
 	ASRCharacter* Character;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
-	EStanceStatus StanceStatus;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
+	//EStanceStatus StanceStatus;
 
 	UFUNCTION(BlueprintCallable, Category = "Animation Properties")
 	void UpdateAnimationProperties();

@@ -31,8 +31,6 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 		MovementSpeedY = UKismetMathLibrary::InverseTransformDirection(MeshTransform, Speed).Y;
 		// Obtain Directional Speed
 		MovementSpeed = LateralSpeed.Size();
-	
-		bIsInAir = Pawn->GetMovementComponent()->IsFalling();
 			
 		//Calculate Direction 
 		Direction = CalculateDirection(Speed, Pawn->GetActorRotation());
@@ -45,6 +43,8 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 		{
 			StanceStatus = Character->GetStanceStatus();
 			bIsArmed = Character->GetIsArmed();
+			if(bIsInAir){ UE_LOG(LogTemp, Warning, TEXT("FALLING!")); }
+					
 		}
 		else
 		{

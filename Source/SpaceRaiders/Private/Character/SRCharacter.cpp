@@ -31,6 +31,7 @@ ASRCharacter::ASRCharacter()
 
 	//Movement Component
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
+	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanJump = true;
 
 	// Input Properties
 	bIsMovingForward = false;
@@ -44,6 +45,7 @@ ASRCharacter::ASRCharacter()
 	SetStanceStatus(EStanceStatus::Ess_Standing);
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
 	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+	SetInAirStatus(EInAirStatus::Eias_Nis);
 }
 
 // Called when the game starts or when spawned
@@ -73,8 +75,10 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction("FreeLook", IE_Released, this, &ASRCharacter::FreeLookOff);
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASRCharacter::StartSprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASRCharacter::EndSprint);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASRCharacter::StartJump);
 
 }
+
 
 void ASRCharacter::MoveForward(float value)
 {
@@ -248,11 +252,59 @@ void ASRCharacter::EndCrouch()
 	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
 }
 
+bool ASRCharacter::GetIsArmed()
+{
+	return bIsArmed;
+}
+
+void ASRCharacter::StartSprint()
+{
+	if(StanceStatus == EStanceStatus::Ess_Crouching)
+	{
+		EndCrouch();
+	}
+	SetStanceStatus(EStanceStatus::Ess_Standing);
+	SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+}
+
+void ASRCharacter::EndSprint()
+{
+	if(StanceStatus != EStanceStatus::Ess_Crouching)
+	{
+		SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+	}
+}
+
+void ASRCharacter::StartJump()
+{
+	Jump();
+	SetStanceStatus(EStanceStatus::Ess_InAir);
+	SetInAirStatus(EInAirStatus::Eias_Jumping);
+	SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
+	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+	UE_LOG(LogTemp, Warning, TEXT("JUMP"));
+}
+
+void ASRCharacter::FreeLookOn()
+{
+	bUseControllerRotationYaw = false;
+}
+
+void ASRCharacter::FreeLookOff()
+{
+	bUseControllerRotationYaw = true;
+}
+
+
+// Stance, Crouching, Standing, InAir Status
+#pragma region Statuses Getters & Setters
+
 void ASRCharacter::SetStanceStatus(EStanceStatus Status)
 {
 	//Set Stance movement status to the input status
 	StanceStatus = Status;
-	
+
 	if (StanceStatus == EStanceStatus::Ess_Standing)
 	{
 
@@ -279,7 +331,7 @@ void ASRCharacter::SetStandingMovementStatus(EStandingMovementStatus Status)
 	}
 	else if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
 	{
-		if(bIsMovingRight)
+		if (bIsMovingRight)
 		{
 			GetCharacterMovement()->MaxWalkSpeed = DiagonalSprintSpeed;
 		}
@@ -289,7 +341,7 @@ void ASRCharacter::SetStandingMovementStatus(EStandingMovementStatus Status)
 		}
 
 	}
-	else if(StandingMovementStatus == EStandingMovementStatus::Esms_Nis)
+	else if (StandingMovementStatus == EStandingMovementStatus::Esms_Nis)
 	{
 
 	}
@@ -320,38 +372,15 @@ ECrouchingMovementStatus ASRCharacter::GetCrouchingMovementStatus()
 	return CrouchingMovementStatus;
 }
 
-bool ASRCharacter::GetIsArmed()
+void ASRCharacter::SetInAirStatus(EInAirStatus Status)
 {
-	return bIsArmed;
+	InAirStatus = Status;
 }
 
-void ASRCharacter::StartSprint()
+EInAirStatus ASRCharacter::GetInAirStatus()
 {
-	if(StanceStatus == EStanceStatus::Ess_Crouching)
-	{
-		EndCrouch();
-	}
-	SetStanceStatus(EStanceStatus::Ess_Standing);
-	SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
-	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+	return InAirStatus;
 }
 
-void ASRCharacter::EndSprint()
-{
-	if(StanceStatus != EStanceStatus::Ess_Crouching)
-	{
-		SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
-	}
-}
-
-void ASRCharacter::FreeLookOn()
-{
-	bUseControllerRotationYaw = false;
-}
-
-void ASRCharacter::FreeLookOff()
-{
-	bUseControllerRotationYaw = true;
-}
-
+#pragma endregion 
 

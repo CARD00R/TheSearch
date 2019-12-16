@@ -16,6 +16,7 @@ enum class EStanceStatus : uint8
 {
 	Ess_Standing UMETA(DisplayName = "Standing"),
 	Ess_Crouching UMETA(DisplayName = "Crouching"),
+	Ess_InAir UMETA(DisplayName = "InAir"),
 	Ess_Max UMETA(DisplayName = "DefaultMax")
 };
 
@@ -38,8 +39,18 @@ enum class ECrouchingMovementStatus : uint8
 	Ecms_Walking UMETA(DisplayName = "Walking"),
 	Ecms_Nis UMETA(DisplayName = "NIS"),
 	Ecms_MAX UMETA(DisplayName = "DefaultMax"),
-
 };
+
+UENUM(BlueprintType)
+enum class EInAirStatus : uint8
+{
+	Eias_Jumping UMETA(DisplayName = "Jumping"),
+	Eias_Falling UMETA(DisplayName = "Falling"),
+	Eias_Nis UMETA(DisplayName = "NIS"),
+	Eias_MAX UMETA(DisplayName = "DefaultMax"),
+};
+
+
 
 UCLASS()
 class SPACERAIDERS_API ASRCharacter : public ACharacter
@@ -98,6 +109,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	ECrouchingMovementStatus CrouchingMovementStatus;
 	FORCEINLINE void SetCrouchingMovementStatus(ECrouchingMovementStatus Status);
+
+	//Crouching Movement Status
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+	EInAirStatus InAirStatus;
+	FORCEINLINE void SetInAirStatus(EInAirStatus Status);
 	
 	
 	//Movement Properties
@@ -109,6 +125,9 @@ protected:
 	// Sprint
 	void StartSprint();
 	void EndSprint();
+
+	// Jump
+	void StartJump();
 	
 	// FreeLook
 	void FreeLookOn();
@@ -128,5 +147,6 @@ public:
 	FORCEINLINE EStanceStatus GetStanceStatus();
 	FORCEINLINE EStandingMovementStatus GetStandingMovementStatus();
 	FORCEINLINE ECrouchingMovementStatus GetCrouchingMovementStatus();
+	FORCEINLINE EInAirStatus GetInAirStatus();
 	FORCEINLINE bool GetIsArmed();
 };

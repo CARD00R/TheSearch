@@ -91,8 +91,8 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 	{
 		GlobalKeysInputDisable();
 		GlobalMouseInputDisable();
-		GetWorld()->GetTimerManager().SetTimer(TimerGlobalKeysInput, this, &ASRCharacter::GlobalKeysInputEnable,1.4f,false);
-		GetWorld()->GetTimerManager().SetTimer(TimerGlobalMouseInput, this, &ASRCharacter::GlobalMouseInputEnable, 1.4f, false);
+		GetWorld()->GetTimerManager().SetTimer(TimerGlobalKeysInput, this, &ASRCharacter::GlobalKeysInputEnable,1.5f,false);
+		GetWorld()->GetTimerManager().SetTimer(TimerGlobalMouseInput, this, &ASRCharacter::GlobalMouseInputEnable, 1.5f, false);
 	}
 	SetStanceStatus(EStanceStatus::Ess_Standing);
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
@@ -332,13 +332,23 @@ void ASRCharacter::EndSprint()
 
 void ASRCharacter::StartJump()
 {
-	SetStanceStatus(EStanceStatus::Ess_InAir);
-	SetInAirStatus(EInAirStatus::Eias_Jumping);
-	SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
-	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
-	Jump();
+	if(StanceStatus == EStanceStatus::Ess_Crouching)
+	{
+		UnCrouch();
+		SetStanceStatus(EStanceStatus::Ess_Standing);
+		SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
+		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);	
+	}
+	else
+	{
+		SetStanceStatus(EStanceStatus::Ess_InAir);
+		SetInAirStatus(EInAirStatus::Eias_Jumping);
+		SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
+		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+		Jump();
+	}
+	
 
-	UE_LOG(LogTemp, Warning, TEXT("JUMP"));
 }
 
 void ASRCharacter::FreeLookOn()

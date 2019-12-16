@@ -14,26 +14,31 @@ class APlayerController;
 UENUM(BlueprintType)
 enum class EStanceStatus : uint8
 {
-	ESS_Standing UMETA(DisplayName = "Standing"),
-	ESS_Crouching UMETA(DisplayName = "Crouching"),
-	ESS_MAX UMETA(DisplayName = "DefaultMax")
+	Ess_Standing UMETA(DisplayName = "Standing"),
+	Ess_Crouching UMETA(DisplayName = "Crouching"),
+	Ess_Max UMETA(DisplayName = "DefaultMax")
 };
 
 UENUM(BlueprintType)
 enum class EStandingMovementStatus : uint8
 {
-	ESMS_Idling UMETA(DisplayName = "Idling"),
-	ESMS_Jogging UMETA(DisplayName = "Jogging"),
-	ESMS_Sprinting UMETA(DisplayName = "Sprinting"),
-	ESMS_MAX UMETA(DisplayName = "DefaultMax")
+	Esms_Idling UMETA(DisplayName = "Idling"),
+	Esms_Jogging UMETA(DisplayName = "Jogging"),
+	Esms_Sprinting UMETA(DisplayName = "Sprinting"),
+	Esms_Nis UMETA(DisplayName = "NIS"),
+	Esms_MAX UMETA(DisplayName = "DefaultMax")
+
+
 };
 
 UENUM(BlueprintType)
 enum class ECrouchingMovementStatus : uint8
 {
-	ECMS_Idling UMETA(DisplayName = "Idling"),
-	ECMS_Walking UMETA(DisplayName = "Walking"),
-	ECMS_MAX UMETA(DisplayName = "DefaultMax")
+	Ecms_Idling UMETA(DisplayName = "Idling"),
+	Ecms_Walking UMETA(DisplayName = "Walking"),
+	Ecms_Nis UMETA(DisplayName = "NIS"),
+	Ecms_MAX UMETA(DisplayName = "DefaultMax"),
+
 };
 
 UCLASS()

@@ -44,7 +44,7 @@ protected:
 	ASRCharacter* Character;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
-	EStandingMovementStatus MovementStatus;
+	EStanceStatus StanceStatus;
 
 	UFUNCTION(BlueprintCallable, Category = "Animation Properties")
 	void UpdateAnimationProperties();

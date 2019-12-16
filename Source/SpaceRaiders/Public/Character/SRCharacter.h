@@ -46,6 +46,7 @@ enum class EInAirStatus : uint8
 {
 	Eias_Jumping UMETA(DisplayName = "Jumping"),
 	Eias_Falling UMETA(DisplayName = "Falling"),
+	Eias_Flailing UMETA(DisplayName = "Flailing"),
 	Eias_Nis UMETA(DisplayName = "NIS"),
 	Eias_MAX UMETA(DisplayName = "DefaultMax"),
 };
@@ -61,6 +62,12 @@ public:
 	// Sets default values for this character's properties
 	ASRCharacter();
 
+	// Global Variables
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Global")
+	bool bGlobalKeysInput;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Global")
+	bool bGlobalMouseInput;
+	
 	// Components
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "Components")
 	USpringArmComponent* SpringArmComp;
@@ -75,6 +82,11 @@ public:
 	FRotator MeshInitialiseRotation = FRotator(0, -90, 0);
 	//SpringArmComponent
 	FVector SpringArmInitialiseLocation = FVector(0, 50, 100);
+
+
+	//InAir Status
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+	EInAirStatus InAirStatus;
 	
 protected:
 	// Called when the game starts or when spawned
@@ -110,12 +122,6 @@ protected:
 	ECrouchingMovementStatus CrouchingMovementStatus;
 	FORCEINLINE void SetCrouchingMovementStatus(ECrouchingMovementStatus Status);
 
-	//Crouching Movement Status
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
-	EInAirStatus InAirStatus;
-	FORCEINLINE void SetInAirStatus(EInAirStatus Status);
-	
-	
 	//Movement Properties
 	float JogSpeed = 600.0f;
 	float DiagonalSprintSpeed = 735.0f;
@@ -133,9 +139,19 @@ protected:
 	void FreeLookOn();
 	void FreeLookOff();
 
+	//Timers
+	FTimerHandle TimerGlobalKeysInput;
+	FTimerHandle TimerGlobalMouseInput;
+	
 	//Weapons
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")
 	bool bIsArmed = false;
+
+	//Input
+	void GlobalKeysInputDisable();
+	void GlobalKeysInputEnable();
+	void GlobalMouseInputDisable();
+	void GlobalMouseInputEnable();
 	
 public:	
 	// Called every frame
@@ -143,10 +159,12 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void Landed(const FHitResult& Hit) override;
 
 	FORCEINLINE EStanceStatus GetStanceStatus();
 	FORCEINLINE EStandingMovementStatus GetStandingMovementStatus();
 	FORCEINLINE ECrouchingMovementStatus GetCrouchingMovementStatus();
 	FORCEINLINE EInAirStatus GetInAirStatus();
+	FORCEINLINE void SetInAirStatus(EInAirStatus Status);
 	FORCEINLINE bool GetIsArmed();
 };

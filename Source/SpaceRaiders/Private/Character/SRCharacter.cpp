@@ -8,6 +8,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "TimerManager.h"
 
 // Sets default values
 ASRCharacter::ASRCharacter()
@@ -46,6 +47,10 @@ ASRCharacter::ASRCharacter()
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
 	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
 	SetInAirStatus(EInAirStatus::Eias_Nis);
+
+	//Global
+	bGlobalKeysInput = true;
+	bGlobalMouseInput = true;
 }
 
 // Called when the game starts or when spawned
@@ -79,70 +84,90 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 }
 
+void ASRCharacter::Landed(const FHitResult & Hit)
+{
+	Super::Landed(Hit);
+	if(InAirStatus == EInAirStatus::Eias_Flailing)
+	{
+		GlobalKeysInputDisable();
+		GlobalMouseInputDisable();
+		GetWorld()->GetTimerManager().SetTimer(TimerGlobalKeysInput, this, &ASRCharacter::GlobalKeysInputEnable,1.4f,false);
+		GetWorld()->GetTimerManager().SetTimer(TimerGlobalMouseInput, this, &ASRCharacter::GlobalMouseInputEnable, 1.4f, false);
+	}
+	SetStanceStatus(EStanceStatus::Ess_Standing);
+	SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
+	SetInAirStatus(EInAirStatus::Eias_Nis);
+	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);	
+}
+
 
 void ASRCharacter::MoveForward(float value)
 {
-	AddMovementInput(GetActorForwardVector() * value);
-
-	//If player is pressing W/S...
-	if(value != 0)
+	
+	if(bGlobalKeysInput)
 	{
-		//...then player is moving forward
-		bIsMovingForward = true;
-		//...and player is standing...
-		if(StanceStatus == EStanceStatus::Ess_Standing)
+		AddMovementInput(GetActorForwardVector() * value);
+		
+		//If player is pressing W/S...
+		if (value != 0)
 		{
-			// and Player is just pressing S...
-			if (value < 0)
+			//...then player is moving forward
+			bIsMovingForward = true;
+			//...and player is standing...
+			if (StanceStatus == EStanceStatus::Ess_Standing)
 			{
-				//...and is sprinting...
-				if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
+				// and Player is just pressing S...
+				if (value < 0)
 				{
-					//then stop the player from sprinting [you can't spring backwards]
-					SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
-				}
-				else
-				{
-					SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
-				}
-			}
-			
-			// if the player is just pressing W...
-			else
-			{
-				//...and player is moving forward and sprinting...
-				if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
-				{
-					if (bIsMovingRight)
+					//...and is sprinting...
+					if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
 					{
-						SprintSpeed = DiagonalSprintSpeed;
-						SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+						//then stop the player from sprinting [you can't spring backwards]
+						SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
 					}
 					else
 					{
-						SprintSpeed = DefaultSprintSpeed;
-						SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+						SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
 					}
 				}
-				//...and player is moving forward and not sprinting...
+
+				// if the player is just pressing W...
 				else
 				{
-					//...then player is jogging
-					SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+					//...and player is moving forward and sprinting...
+					if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
+					{
+						if (bIsMovingRight)
+						{
+							SprintSpeed = DiagonalSprintSpeed;
+							SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+						}
+						else
+						{
+							SprintSpeed = DefaultSprintSpeed;
+							SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+						}
+					}
+					//...and player is moving forward and not sprinting...
+					else
+					{
+						//...then player is jogging
+						SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+					}
 				}
 			}
+			//...and player is crouching
+			else if (StanceStatus == EStanceStatus::Ess_Crouching)
+			{
+				SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Walking);
+			}
 		}
-		//...and player is crouching
-		else if(StanceStatus == EStanceStatus::Ess_Crouching)
+		//If Player is not pressing W/S...
+		else
 		{
-			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Walking);
+			//...then player is not moving forward
+			bIsMovingForward = false;
 		}
-	}
-	//If Player is not pressing W/S...
-	else
-	{
-		//...then player is not moving forward
-		bIsMovingForward = false;
 	}
 	
 	//If Player is not moving forward and not moving right...
@@ -181,44 +206,73 @@ void ASRCharacter::MoveForward(float value)
 
 void ASRCharacter::MoveRight(float value)
 {
-	AddMovementInput(GetActorRightVector()* value);
-
-	//If player is pressing S/D...
-	if (value != 0)
+	if (bGlobalKeysInput)
 	{
-		//...then player is moving right
-		bIsMovingRight = true;
-
-		if (StanceStatus == EStanceStatus::Ess_Standing)
+		AddMovementInput(GetActorRightVector()* value);
+		
+		//If player is pressing S/D...
+		if (value != 0)
 		{
-			//...if player moving right and not sprinting...
-			if (StandingMovementStatus != EStandingMovementStatus::Esms_Sprinting)
+			//...then player is moving right
+			bIsMovingRight = true;
+
+			if (StanceStatus == EStanceStatus::Ess_Standing)
 			{
-				//...then the player is jogging
-				SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+				//...if player moving right and not sprinting...
+				if (StandingMovementStatus != EStandingMovementStatus::Esms_Sprinting)
+				{
+					//...then the player is jogging
+					SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+				}
+			}
+			else if (StanceStatus == EStanceStatus::Ess_Crouching)
+			{
+				SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Walking);
 			}
 		}
-		else if (StanceStatus == EStanceStatus::Ess_Crouching)
+		//If player is not pressing S/D
+		else
 		{
-			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Walking);
+			//...then player is not moving right
+			bIsMovingRight = false;
 		}
-	}
-	//If player is not pressing S/D
-	else
-	{
-		//...then player is not moving right
-		bIsMovingRight = false;
 	}
 }
 
 void ASRCharacter::LookUp(float value)
 {
-	AddControllerPitchInput(value);
+	if(bGlobalMouseInput)
+	{
+		AddControllerPitchInput(value);
+	}
 }
 
 void ASRCharacter::Turn(float value)
 {
-	AddControllerYawInput(value);
+	if (bGlobalMouseInput)
+	{
+		AddControllerYawInput(value);
+	}
+}
+
+void ASRCharacter::GlobalKeysInputDisable()
+{
+	bGlobalKeysInput = false;
+}
+
+void ASRCharacter::GlobalKeysInputEnable()
+{
+	bGlobalKeysInput = true;
+}
+
+void ASRCharacter::GlobalMouseInputDisable()
+{
+	bGlobalMouseInput = false;
+}
+
+void ASRCharacter::GlobalMouseInputEnable()
+{
+	bGlobalMouseInput = true;
 }
 
 void ASRCharacter::CrouchToggle()
@@ -278,11 +332,12 @@ void ASRCharacter::EndSprint()
 
 void ASRCharacter::StartJump()
 {
-	Jump();
 	SetStanceStatus(EStanceStatus::Ess_InAir);
 	SetInAirStatus(EInAirStatus::Eias_Jumping);
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
 	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+	Jump();
+
 	UE_LOG(LogTemp, Warning, TEXT("JUMP"));
 }
 

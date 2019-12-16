@@ -25,26 +25,32 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 		FVector LateralSpeed = FVector(Speed.X, Speed.Y, 0);
 		FTransform MeshTransform = GetSkelMeshComponent()->GetComponentTransform();
 
+		// Fly/Fall Speed
+		VerticalVelocity = Pawn->GetVelocity().Z;
+		
 		// Obtain horizontal Speed (Inversed [-1])
 		MovementSpeedX = (UKismetMathLibrary::InverseTransformDirection(MeshTransform, Speed).X)*-1.0f;
 		// Obtain Vertical Speed
 		MovementSpeedY = UKismetMathLibrary::InverseTransformDirection(MeshTransform, Speed).Y;
 		// Obtain Directional Speed
 		MovementSpeed = LateralSpeed.Size();
-			
+
+		//bIsInAir = Pawn->movement
+		
 		//Calculate Direction 
 		Direction = CalculateDirection(Speed, Pawn->GetActorRotation());
 		Direction = FMath::Clamp(Direction, -175.0f, 175.0f);
 
 		// Casting to SRCharacter in order to obtain the Movement Status Enum inside ASR Character
 		Character = Cast<ASRCharacter>(Pawn);
-		
+				
 		if(Character != nullptr)
 		{
 			StanceStatus = Character->GetStanceStatus();
+			InAirStatus = Character->GetInAirStatus();
 			bIsArmed = Character->GetIsArmed();
-			if(bIsInAir){ UE_LOG(LogTemp, Warning, TEXT("FALLING!")); }
-					
+			
+			DetermineVerticalVelocityProperties();
 		}
 		else
 		{
@@ -52,11 +58,37 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 
 			Character = Cast<ASRCharacter>(Pawn);
 		}
-		
-
 	}
 	else
 	{
 		Pawn = TryGetPawnOwner();
 	}	
+}
+
+void USRCharacterAnimInstance::DetermineVerticalVelocityProperties()
+{
+	if (VerticalVelocity >= 0)
+	{
+		bIsInAir = false;
+		bGoingToLand = false;
+		if (VerticalVelocity > 0)
+		{
+			Character->SetInAirStatus(EInAirStatus::Eias_Jumping);
+		}
+	}
+	else
+	{
+		bIsInAir = true;
+		bGoingToLand = true;
+		if(VerticalVelocity < FlailLimit)
+		{
+			Character->SetInAirStatus(EInAirStatus::Eias_Flailing);
+			UE_LOG(LogTemp, Warning, TEXT("ARGHHH!!"));
+		}
+		else
+		{
+			Character->SetInAirStatus(EInAirStatus::Eias_Falling);
+		}
+
+	}
 }

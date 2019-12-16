@@ -36,6 +36,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool bIsInAir;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	float VerticalVelocity;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	float FlailLimit = -1100;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	bool bGoingToLand;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
 	APawn* Pawn;
@@ -47,12 +56,15 @@ protected:
 	EStanceStatus StanceStatus;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
+	EInAirStatus InAirStatus;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
 	bool bIsArmed;
 
 	UFUNCTION(BlueprintCallable, Category = "Animation Properties")
 	void UpdateAnimationProperties();
 
-
+	void DetermineVerticalVelocityProperties();
 	
 public:
 

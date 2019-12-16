@@ -113,6 +113,10 @@ protected:
 	// FreeLook
 	void FreeLookOn();
 	void FreeLookOff();
+
+	//Weapons
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")
+	bool bIsArmed = false;
 	
 public:	
 	// Called every frame
@@ -124,4 +128,5 @@ public:
 	FORCEINLINE EStanceStatus GetStanceStatus();
 	FORCEINLINE EStandingMovementStatus GetStandingMovementStatus();
 	FORCEINLINE ECrouchingMovementStatus GetCrouchingMovementStatus();
+	FORCEINLINE bool GetIsArmed();
 };

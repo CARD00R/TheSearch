@@ -43,7 +43,8 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 		
 		if(Character != nullptr)
 		{
-			//StanceStatus = Character->GetStanceStatus();
+			StanceStatus = Character->GetStanceStatus();
+			bIsArmed = Character->GetIsArmed();
 		}
 		else
 		{

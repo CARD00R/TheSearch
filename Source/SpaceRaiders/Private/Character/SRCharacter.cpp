@@ -263,6 +263,11 @@ void ASRCharacter::SetStanceStatus(EStanceStatus Status)
 	}
 }
 
+EStanceStatus ASRCharacter::GetStanceStatus()
+{
+	return StanceStatus;
+}
+
 void ASRCharacter::SetStandingMovementStatus(EStandingMovementStatus Status)
 {
 	//Set Standing movement status to the input status
@@ -290,6 +295,11 @@ void ASRCharacter::SetStandingMovementStatus(EStandingMovementStatus Status)
 	}
 }
 
+EStandingMovementStatus ASRCharacter::GetStandingMovementStatus()
+{
+	return StandingMovementStatus;
+}
+
 void ASRCharacter::SetCrouchingMovementStatus(ECrouchingMovementStatus Status)
 {
 	//Set Crouching movement status to the input status
@@ -305,9 +315,14 @@ void ASRCharacter::SetCrouchingMovementStatus(ECrouchingMovementStatus Status)
 	}
 }
 
-EStandingMovementStatus ASRCharacter::GetStandingMovementStatus()
+ECrouchingMovementStatus ASRCharacter::GetCrouchingMovementStatus()
 {
-	return StandingMovementStatus;
+	return CrouchingMovementStatus;
+}
+
+bool ASRCharacter::GetIsArmed()
+{
+	return bIsArmed;
 }
 
 void ASRCharacter::StartSprint()

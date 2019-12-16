@@ -28,10 +28,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float MovementSpeed;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
 	float MovementSpeedX;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
 	float MovementSpeedY;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
@@ -43,8 +43,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
 	ASRCharacter* Character;
 	
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
-	//EStanceStatus StanceStatus;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
+	EStanceStatus StanceStatus;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
+	bool bIsArmed;
 
 	UFUNCTION(BlueprintCallable, Category = "Animation Properties")
 	void UpdateAnimationProperties();

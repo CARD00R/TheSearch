@@ -78,7 +78,7 @@ public:
 	
 	// Construction Variables
 	//Mesh
-	FVector MeshInitialiseLocation = FVector(0, 0, -88);
+	FVector MeshInitialiseLocation = FVector(-5, 0, -88);
 	FRotator MeshInitialiseRotation = FRotator(0, -90, 0);
 	//SpringArmComponent
 	FVector SpringArmInitialiseLocation = FVector(0, 50, 100);

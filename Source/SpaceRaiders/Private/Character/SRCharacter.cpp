@@ -5,6 +5,7 @@
 #include "Components/InputComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -30,9 +31,19 @@ ASRCharacter::ASRCharacter()
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false;
 
+	//CapsuleComp
+	GetCapsuleComponent()->SetCapsuleRadius(20.0f);
+	
 	//Movement Component
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanJump = true;
+	GetCharacterMovement()->GravityScale = 1.5f;
+	GetCharacterMovement()->CrouchedHalfHeight = 63.0f;
+	GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
+	GetCharacterMovement()->BrakingDecelerationWalking = 1350.0f;
+	GetCharacterMovement()->bCanWalkOffLedgesWhenCrouching = true;
+	GetCharacterMovement()->JumpZVelocity = 560.0f;
+	
 
 	// Input Properties
 	bIsMovingForward = false;
@@ -107,6 +118,7 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 	}
 
 	SetInAirStatus(EInAirStatus::Eias_Nis);
+	
 	if(StandingMovementStatus == EStandingMovementStatus::Esms_Jogging || StandingMovementStatus == EStandingMovementStatus::Esms_Idling 
 		|| StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
 	{
@@ -116,10 +128,7 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 	{
 		SetStanceStatus(EStanceStatus::Ess_Crouching);
 	}
-	//
-	//SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
-	//SetInAirStatus(EInAirStatus::Eias_Nis);
-	//SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);	
+
 }
 
 

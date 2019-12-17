@@ -34,19 +34,28 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
 	float MovementSpeedY;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	# pragma region Falling Properties
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
 	float VerticalVelocity;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
 	float FallHeightFlailLimit = 700;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
 	float FallHeight;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
+	float StoredFallHeight;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
 	float FallHeightStartingZ;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
+	bool bShouldHardLand;
+
 	bool bShouldResetFallHeight = false;
+
+	#pragma endregion
 
 	//Timers
 	FTimerHandle TimerFallHeightReset;
@@ -69,6 +78,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
 	bool bIsArmed;
+
+	
 
 	UFUNCTION(BlueprintCallable, Category = "Animation Properties")
 	void UpdateAnimationProperties();

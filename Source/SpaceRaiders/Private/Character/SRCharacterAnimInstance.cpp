@@ -48,6 +48,8 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 			StanceStatus = Character->GetStanceStatus();
 			InAirStatus = Character->GetInAirStatus();
 			bIsArmed = Character->GetIsArmed();
+			bShouldHardLand = Character->GetShouldHardLand();
+			Character->FallHeight = FallHeight;
 			
 			DetermineVerticalVelocityProperties();
 		}
@@ -73,13 +75,14 @@ void USRCharacterAnimInstance::DetermineVerticalVelocityProperties()
 		if (VerticalVelocity > 0)
 		{
 			Character->SetInAirStatus(EInAirStatus::Eias_Jumping);
+			ResetFallHeight();
 		}
 		if(VerticalVelocity == 0)
 		{	
 			// Call Timer
 			if(bShouldResetFallHeight)
 			{
-				GetWorld()->GetTimerManager().SetTimer(TimerFallHeightReset, this, &USRCharacterAnimInstance::ResetFallHeight, 1.2f, false);
+				GetWorld()->GetTimerManager().SetTimer(TimerFallHeightReset, this, &USRCharacterAnimInstance::ResetFallHeight, 1.7f, false);
 				bShouldResetFallHeight = false;
 			}
 		}
@@ -87,10 +90,8 @@ void USRCharacterAnimInstance::DetermineVerticalVelocityProperties()
 		FallHeightStartingZ = StoredZLocation;
 	}
 	else
-	{
-		
-		
-		if(FallHeight > FallHeight)
+	{			
+		if(FallHeight > FallHeightFlailLimit)
 		{
 			Character->SetInAirStatus(EInAirStatus::Eias_Flailing);		
 		}

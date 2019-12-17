@@ -142,7 +142,16 @@ protected:
 	//Timers
 	FTimerHandle TimerGlobalKeysInput;
 	FTimerHandle TimerGlobalMouseInput;
-	
+
+	// Landing
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Fall")
+	bool bShouldHardLand;
+	float LandDelay;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Fall")
+	float HardLandDelay = 1.7f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Fall")
+	float SoftLandDelay = 0.8f;
+		
 	//Weapons
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")
 	bool bIsArmed = false;
@@ -167,4 +176,10 @@ public:
 	FORCEINLINE EInAirStatus GetInAirStatus();
 	FORCEINLINE void SetInAirStatus(EInAirStatus Status);
 	FORCEINLINE bool GetIsArmed();
+	FORCEINLINE bool GetShouldHardLand();
+
+	// Landing
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fall")
+	float FallHeight = 0;
+
 };

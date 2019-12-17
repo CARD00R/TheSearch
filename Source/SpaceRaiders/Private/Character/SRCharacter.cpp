@@ -87,17 +87,39 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 void ASRCharacter::Landed(const FHitResult & Hit)
 {
 	Super::Landed(Hit);
+	// Land and the character is Flailing
 	if(InAirStatus == EInAirStatus::Eias_Flailing)
 	{
 		GlobalKeysInputDisable();
 		GlobalMouseInputDisable();
-		GetWorld()->GetTimerManager().SetTimer(TimerGlobalKeysInput, this, &ASRCharacter::GlobalKeysInputEnable,1.5f,false);
-		GetWorld()->GetTimerManager().SetTimer(TimerGlobalMouseInput, this, &ASRCharacter::GlobalMouseInputEnable, 1.5f, false);
+		if(FallHeight > 1300.0f)
+		{
+			LandDelay = HardLandDelay;
+			bShouldHardLand = true;
+		}
+		else
+		{
+			LandDelay = SoftLandDelay;
+			bShouldHardLand = false;
+		}
+		GetWorld()->GetTimerManager().SetTimer(TimerGlobalKeysInput, this, &ASRCharacter::GlobalKeysInputEnable,LandDelay,false);
+		GetWorld()->GetTimerManager().SetTimer(TimerGlobalMouseInput, this, &ASRCharacter::GlobalMouseInputEnable, LandDelay, false);
 	}
-	SetStanceStatus(EStanceStatus::Ess_Standing);
-	SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
+
 	SetInAirStatus(EInAirStatus::Eias_Nis);
-	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);	
+	if(StandingMovementStatus == EStandingMovementStatus::Esms_Jogging || StandingMovementStatus == EStandingMovementStatus::Esms_Idling 
+		|| StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
+	{
+		SetStanceStatus(EStanceStatus::Ess_Standing);
+	}
+	else if(CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Idling || CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Walking)
+	{
+		SetStanceStatus(EStanceStatus::Ess_Crouching);
+	}
+	//
+	//SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
+	//SetInAirStatus(EInAirStatus::Eias_Nis);
+	//SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);	
 }
 
 
@@ -304,11 +326,24 @@ void ASRCharacter::EndCrouch()
 	SetStanceStatus(EStanceStatus::Ess_Standing);
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
 	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+	
 }
 
 bool ASRCharacter::GetIsArmed()
 {
 	return bIsArmed;
+}
+
+bool ASRCharacter::GetShouldHardLand()
+{
+	if(bShouldHardLand)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 void ASRCharacter::StartSprint()
@@ -343,8 +378,8 @@ void ASRCharacter::StartJump()
 	{
 		SetStanceStatus(EStanceStatus::Ess_InAir);
 		SetInAirStatus(EInAirStatus::Eias_Jumping);
-		SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
-		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+		//SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
+		//SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
 		Jump();
 	}
 	

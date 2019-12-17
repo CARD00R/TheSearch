@@ -33,18 +33,27 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
 	float MovementSpeedY;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
-	bool bIsInAir;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float VerticalVelocity;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-	float FlailLimit = -1100;
+	float FallHeightFlailLimit = 700;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	float FallHeight;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	float FallHeightStartingZ;
+
+	bool bShouldResetFallHeight = false;
+
+	//Timers
+	FTimerHandle TimerFallHeightReset;
+	void ResetFallHeight();
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
-	bool bGoingToLand;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	float StoredZLocation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
 	APawn* Pawn;
@@ -65,6 +74,7 @@ protected:
 	void UpdateAnimationProperties();
 
 	void DetermineVerticalVelocityProperties();
+
 	
 public:
 

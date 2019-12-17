@@ -6,6 +6,7 @@
 #include "Math/UnrealMathUtility.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "public/Character/SRCharacter.h"
+#include "TimerManager.h"
 
 void USRCharacterAnimInstance::NativeInitializeAnimation()
 {
@@ -34,9 +35,7 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 		MovementSpeedY = UKismetMathLibrary::InverseTransformDirection(MeshTransform, Speed).Y;
 		// Obtain Directional Speed
 		MovementSpeed = LateralSpeed.Size();
-
-		//bIsInAir = Pawn->movement
-		
+	
 		//Calculate Direction 
 		Direction = CalculateDirection(Speed, Pawn->GetActorRotation());
 		Direction = FMath::Clamp(Direction, -175.0f, 175.0f);
@@ -67,28 +66,45 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 
 void USRCharacterAnimInstance::DetermineVerticalVelocityProperties()
 {
+	StoredZLocation = Character->GetActorLocation().Z;
+	
 	if (VerticalVelocity >= 0)
-	{
-		bIsInAir = false;
-		bGoingToLand = false;
+	{	
 		if (VerticalVelocity > 0)
 		{
 			Character->SetInAirStatus(EInAirStatus::Eias_Jumping);
 		}
+		if(VerticalVelocity == 0)
+		{	
+			// Call Timer
+			if(bShouldResetFallHeight)
+			{
+				GetWorld()->GetTimerManager().SetTimer(TimerFallHeightReset, this, &USRCharacterAnimInstance::ResetFallHeight, 1.2f, false);
+				bShouldResetFallHeight = false;
+			}
+		}
+		
+		FallHeightStartingZ = StoredZLocation;
 	}
 	else
 	{
-		bIsInAir = true;
-		bGoingToLand = true;
-		if(VerticalVelocity < FlailLimit)
+		
+		
+		if(FallHeight > FallHeight)
 		{
-			Character->SetInAirStatus(EInAirStatus::Eias_Flailing);
-			UE_LOG(LogTemp, Warning, TEXT("ARGHHH!!"));
+			Character->SetInAirStatus(EInAirStatus::Eias_Flailing);		
 		}
 		else
 		{
 			Character->SetInAirStatus(EInAirStatus::Eias_Falling);
+			bShouldResetFallHeight = true;
 		}
 
+		FallHeight = FallHeightStartingZ - StoredZLocation;
 	}
+}
+
+void USRCharacterAnimInstance::ResetFallHeight()
+{
+	FallHeight = 0;
 }

@@ -20,6 +20,13 @@ class SPACERAIDERS_API USRCharacterAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 
+public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
+		EStanceStatus StanceStatus;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
+		EInAirStatus InAirStatus;
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
@@ -69,12 +76,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
 	ASRCharacter* Character;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
-	EStanceStatus StanceStatus;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
-	EInAirStatus InAirStatus;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
 	bool bIsArmed;

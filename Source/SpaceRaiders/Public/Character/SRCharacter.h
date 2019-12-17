@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include <hlslcc/hlslcc/src/hlslcc_lib/compiler.h>
 #include "SRCharacter.generated.h"
 
 class USkeletalMeshComponent;
@@ -87,6 +88,26 @@ public:
 	//InAir Status
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	EInAirStatus InAirStatus;
+
+	// Stance Status
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+	EStanceStatus StanceStatus;
+	void SetStanceStatus(EStanceStatus Status);
+
+
+	EStanceStatus GetStanceStatus();
+	EStandingMovementStatus GetStandingMovementStatus();
+	ECrouchingMovementStatus GetCrouchingMovementStatus();
+	EInAirStatus GetInAirStatus();
+	void SetInAirStatus(EInAirStatus Status);
+	bool GetIsArmed();
+	bool GetShouldHardLand();
+
+
+
+	// Landing
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fall")
+		float FallHeight = 0;
 	
 protected:
 	// Called when the game starts or when spawned
@@ -107,20 +128,17 @@ protected:
 	void EndCrouch();
 	bool bToggleCrouch = false;
 
-	// Stance Status
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
-	EStanceStatus StanceStatus;
-	FORCEINLINE void SetStanceStatus(EStanceStatus Status);
+	
 	
 	//Standing Movement Status
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	EStandingMovementStatus StandingMovementStatus;
-	FORCEINLINE void SetStandingMovementStatus(EStandingMovementStatus Status);
+	void SetStandingMovementStatus(EStandingMovementStatus Status);
 
 	//Crouching Movement Status
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	ECrouchingMovementStatus CrouchingMovementStatus;
-	FORCEINLINE void SetCrouchingMovementStatus(ECrouchingMovementStatus Status);
+	void SetCrouchingMovementStatus(ECrouchingMovementStatus Status);
 
 	//Movement Properties
 	float JogSpeed = 600.0f;
@@ -169,17 +187,5 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Landed(const FHitResult& Hit) override;
-
-	FORCEINLINE EStanceStatus GetStanceStatus();
-	FORCEINLINE EStandingMovementStatus GetStandingMovementStatus();
-	FORCEINLINE ECrouchingMovementStatus GetCrouchingMovementStatus();
-	FORCEINLINE EInAirStatus GetInAirStatus();
-	FORCEINLINE void SetInAirStatus(EInAirStatus Status);
-	FORCEINLINE bool GetIsArmed();
-	FORCEINLINE bool GetShouldHardLand();
-
-	// Landing
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fall")
-	float FallHeight = 0;
 
 };

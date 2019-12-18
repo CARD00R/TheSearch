@@ -150,6 +150,7 @@ void ASRCharacter::MoveForward(float value)
 				// and Player is just pressing S...
 				if (value < 0)
 				{
+					GetCharacterMovement()->MaxWalkSpeed = BackwardsJogSpeed;
 					//...and is sprinting...
 					if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
 					{
@@ -165,6 +166,7 @@ void ASRCharacter::MoveForward(float value)
 				// if the player is just pressing W...
 				else
 				{
+					GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
 					//...and player is moving forward and sprinting...
 					if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
 					{

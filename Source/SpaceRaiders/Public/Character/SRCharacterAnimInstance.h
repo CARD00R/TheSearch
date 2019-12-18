@@ -23,10 +23,16 @@ class SPACERAIDERS_API USRCharacterAnimInstance : public UAnimInstance
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
-		EStanceStatus StanceStatus;
+	EStanceStatus StanceStatus;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
-		EInAirStatus InAirStatus;
+	EInAirStatus InAirStatus;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
+	EStandingMovementStatus StandingMovementStatus;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
+	ECrouchingMovementStatus CrouchingMovementStatus;
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
@@ -92,5 +98,6 @@ protected:
 public:
 
 	virtual void NativeInitializeAnimation() override;
+
 	
 };

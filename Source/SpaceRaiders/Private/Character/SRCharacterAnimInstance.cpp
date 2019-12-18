@@ -7,6 +7,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "public/Character/SRCharacter.h"
 #include "TimerManager.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
 
 void USRCharacterAnimInstance::NativeInitializeAnimation()
 {
@@ -15,7 +17,6 @@ void USRCharacterAnimInstance::NativeInitializeAnimation()
 		Pawn = TryGetPawnOwner();
 	}	
 }
-
 
 void USRCharacterAnimInstance::UpdateAnimationProperties()
 {
@@ -42,11 +43,19 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 
 		// Casting to SRCharacter in order to obtain the Movement Status Enum inside ASR Character
 		Character = Cast<ASRCharacter>(Pawn);
-				
+		// If character exists...		
 		if(Character != nullptr)
 		{
-			StanceStatus = Character->GetStanceStatus();
-			InAirStatus = Character->GetInAirStatus();
+			//Set numerous variables
+			//Status
+			StanceStatus = Character->StanceStatus;
+			
+			InAirStatus = Character->InAirStatus;
+			
+			StandingMovementStatus = Character->StandingMovementStatus;
+			
+			CrouchingMovementStatus = Character->CrouchingMovementStatus;
+			
 			bIsArmed = Character->GetIsArmed();
 			bShouldHardLand = Character->GetShouldHardLand();
 			Character->FallHeight = FallHeight;

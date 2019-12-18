@@ -74,7 +74,7 @@ public:
 	USpringArmComponent* SpringArmComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* CameraComp;
-
+	
 	APlayerController* PlayerController;
 	
 	// Construction Variables
@@ -92,8 +92,17 @@ public:
 	// Stance Status
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	EStanceStatus StanceStatus;
-	void SetStanceStatus(EStanceStatus Status);
+	void SetStanceStatus(EStanceStatus Status);   
 
+	//Standing Movement Status
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+	EStandingMovementStatus StandingMovementStatus;
+	void SetStandingMovementStatus(EStandingMovementStatus Status);
+
+	//Crouching Movement Status
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+	ECrouchingMovementStatus CrouchingMovementStatus;
+	void SetCrouchingMovementStatus(ECrouchingMovementStatus Status);
 
 	EStanceStatus GetStanceStatus();
 	EStandingMovementStatus GetStandingMovementStatus();
@@ -102,8 +111,6 @@ public:
 	void SetInAirStatus(EInAirStatus Status);
 	bool GetIsArmed();
 	bool GetShouldHardLand();
-
-
 
 	// Landing
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fall")
@@ -128,20 +135,9 @@ protected:
 	void EndCrouch();
 	bool bToggleCrouch = false;
 
-	
-	
-	//Standing Movement Status
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
-	EStandingMovementStatus StandingMovementStatus;
-	void SetStandingMovementStatus(EStandingMovementStatus Status);
-
-	//Crouching Movement Status
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
-	ECrouchingMovementStatus CrouchingMovementStatus;
-	void SetCrouchingMovementStatus(ECrouchingMovementStatus Status);
-
 	//Movement Properties
 	float JogSpeed = 600.0f;
+	float BackwardsJogSpeed = JogSpeed * 0.8f;
 	float DiagonalSprintSpeed = 735.0f;
 	float SprintSpeed = DefaultSprintSpeed;
 	float DefaultSprintSpeed = 900.0f;

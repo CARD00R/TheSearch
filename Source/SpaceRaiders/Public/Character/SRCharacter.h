@@ -18,6 +18,7 @@ enum class EStanceStatus : uint8
 	Ess_Standing UMETA(DisplayName = "Standing"),
 	Ess_Crouching UMETA(DisplayName = "Crouching"),
 	Ess_InAir UMETA(DisplayName = "InAir"),
+	Ess_PowerSliding UMETA(DisplayName = "PowerSliding"),
 	Ess_Max UMETA(DisplayName = "DefaultMax")
 };
 
@@ -142,18 +143,29 @@ protected:
 	float SprintSpeed = DefaultSprintSpeed;
 	float DefaultSprintSpeed = 900.0f;
 
+
 	// Sprint
 	void StartSprint();
+	void SprintReleased();
 	void EndSprint();
-
+	float EndSprintDelay=0.3f;
+	FTimerHandle TimerEndSprint;
+	
 	// Jump
 	void StartJump();
-	
+
+	// Power Slide
+	void StartPowerSlide();
+	void EndPowerSlide();
+	float PowerSlideSpeed = 900.0f;
+	float PowerSlideDuration = 1.5f;
+	FTimerHandle TimerPowerSlideDuration;
+
 	// FreeLook
 	void FreeLookOn();
 	void FreeLookOff();
 
-	//Timers
+	//GlobalTimers
 	FTimerHandle TimerGlobalKeysInput;
 	FTimerHandle TimerGlobalMouseInput;
 

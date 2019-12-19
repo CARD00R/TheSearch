@@ -50,7 +50,7 @@ ASRCharacter::ASRCharacter()
 	bIsMovingRight = false;
 
 	// Replication Variables
-	SetReplicateMovement(true);
+    SetReplicateMovement(true);
 	SetReplicates(true);
 
 	// Default Stance, Movement Statuses
@@ -90,7 +90,7 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction("FreeLook", IE_Pressed, this, &ASRCharacter::FreeLookOn);
 	PlayerInputComponent->BindAction("FreeLook", IE_Released, this, &ASRCharacter::FreeLookOff);
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASRCharacter::StartSprint);
-	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASRCharacter::EndSprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASRCharacter::SprintReleased);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASRCharacter::StartJump);
 
 }
@@ -319,25 +319,41 @@ void ASRCharacter::CrouchToggle()
 	}
 	else
 	{
-		EndCrouch();
+		if (StanceStatus != EStanceStatus::Ess_PowerSliding)
+		{
+			EndCrouch();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Stopping Powerslide"));
+			EndPowerSlide();
+		}		
 	}
 }
 
 void ASRCharacter::BeginCrouch()
 {
-	Crouch();
-	SetStanceStatus(EStanceStatus::Ess_Crouching);
-	SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
-	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Idling);
+	if(StandingMovementStatus != EStandingMovementStatus::Esms_Sprinting)
+	{
+		Crouch();
+		SetStanceStatus(EStanceStatus::Ess_Crouching);
+		SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
+		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Idling);
+	}
+	else
+	{
+		SetStanceStatus(EStanceStatus::Ess_PowerSliding);
+	}
+	
 }
 
 void ASRCharacter::EndCrouch()
 {
+
 	UnCrouch();
 	SetStanceStatus(EStanceStatus::Ess_Standing);
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
 	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
-	
 }
 
 bool ASRCharacter::GetIsArmed()
@@ -368,11 +384,19 @@ void ASRCharacter::StartSprint()
 	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
 }
 
+void ASRCharacter::SprintReleased()
+{
+	GetWorld()->GetTimerManager().SetTimer(TimerEndSprint, this, &ASRCharacter::EndSprint, EndSprintDelay, false);
+}
+
 void ASRCharacter::EndSprint()
 {
-	if(StanceStatus != EStanceStatus::Ess_Crouching)
+	if(StanceStatus != EStanceStatus::Ess_PowerSliding)
 	{
-		SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+		if (StanceStatus != EStanceStatus::Ess_Crouching)
+		{
+			SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+		}
 	}
 }
 
@@ -395,6 +419,34 @@ void ASRCharacter::StartJump()
 	}
 	
 
+}
+
+void ASRCharacter::StartPowerSlide()
+{
+	SetStanceStatus(EStanceStatus::Ess_PowerSliding);
+	GetWorld()->GetTimerManager().SetTimer(TimerPowerSlideDuration, this, &ASRCharacter::EndPowerSlide, PowerSlideDuration, false);
+
+}
+
+void ASRCharacter::EndPowerSlide()
+{
+	SetStanceStatus(EStanceStatus::Ess_Standing);
+	
+	if (bIsMovingForward || bIsMovingRight)
+	{
+		if (StandingMovementStatus == EStandingMovementStatus::Esms_Jogging || StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
+		{
+			SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+		}
+		/*else if (CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Walking)
+		{
+			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Walking);
+		}*/
+	}
+	else
+	{
+		SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
+	}
 }
 
 void ASRCharacter::FreeLookOn()

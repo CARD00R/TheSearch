@@ -25,6 +25,7 @@ ASRCharacter::ASRCharacter()
 	SpringArmComp->bUsePawnControlRotation = true;
 	SpringArmComp->SetupAttachment(RootComponent);
 	SpringArmComp->SetWorldLocation(SpringArmInitialiseLocation);
+	SpringArmComp->SocketOffset = SpringArmInitialiseSocketOffset;
 	
 	//CameraComp
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
@@ -86,7 +87,8 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAxis("LookUp", this, &ASRCharacter::LookUp);
 	PlayerInputComponent->BindAxis("Turn", this, &ASRCharacter::Turn);
 	//Action
-	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASRCharacter::CrouchToggle);
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASRCharacter::CrouchSlideCheckPressed);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASRCharacter::CrouchSlideCheckReleased);
 	PlayerInputComponent->BindAction("FreeLook", IE_Pressed, this, &ASRCharacter::FreeLookOn);
 	PlayerInputComponent->BindAction("FreeLook", IE_Released, this, &ASRCharacter::FreeLookOff);
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASRCharacter::StartSprint);
@@ -288,6 +290,30 @@ void ASRCharacter::Turn(float value)
 	}
 }
 
+void ASRCharacter::CrouchSlideCheckPressed()
+{
+	if(StandingMovementStatus != EStandingMovementStatus::Esms_Sprinting)
+	{
+		BeginCrouch();
+	}
+	else
+	{
+		StartPowerSlide();
+	}
+}
+
+void ASRCharacter::CrouchSlideCheckReleased()
+{
+	if (StanceStatus != EStanceStatus::Ess_PowerSliding)
+	{
+		EndCrouch();
+	}
+	else
+	{
+		EndPowerSlide();
+	}
+}
+
 void ASRCharacter::GlobalKeysInputDisable()
 {
 	bGlobalKeysInput = false;
@@ -319,16 +345,17 @@ void ASRCharacter::CrouchToggle()
 	}
 	else
 	{
-		if (StanceStatus != EStanceStatus::Ess_PowerSliding)
+		EndCrouch();
+	}
+	/*if (StanceStatus != EStanceStatus::Ess_PowerSliding)
 		{
-			EndCrouch();
+			
 		}
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Stopping Powerslide"));
 			EndPowerSlide();
-		}		
-	}
+		}		*/
 }
 
 void ASRCharacter::BeginCrouch()
@@ -342,7 +369,7 @@ void ASRCharacter::BeginCrouch()
 	}
 	else
 	{
-		SetStanceStatus(EStanceStatus::Ess_PowerSliding);
+		StartPowerSlide();
 	}
 	
 }
@@ -409,6 +436,13 @@ void ASRCharacter::StartJump()
 		SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
 		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);	
 	}
+	else if(StanceStatus == EStanceStatus::Ess_PowerSliding)
+	{
+		EndPowerSlide();
+		SetStanceStatus(EStanceStatus::Ess_Standing);
+		SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
+		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+	}
 	else
 	{
 		SetStanceStatus(EStanceStatus::Ess_InAir);
@@ -431,6 +465,10 @@ void ASRCharacter::StartPowerSlide()
 void ASRCharacter::EndPowerSlide()
 {
 	SetStanceStatus(EStanceStatus::Ess_Standing);
+	if(GetWorld()->GetTimerManager().IsTimerActive(TimerPowerSlideDuration))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerPowerSlideDuration);
+	}
 	
 	if (bIsMovingForward || bIsMovingRight)
 	{
@@ -447,6 +485,8 @@ void ASRCharacter::EndPowerSlide()
 	{
 		SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
 	}
+
+	
 }
 
 void ASRCharacter::FreeLookOn()

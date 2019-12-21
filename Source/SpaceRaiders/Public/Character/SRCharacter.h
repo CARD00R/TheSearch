@@ -83,7 +83,8 @@ public:
 	FVector MeshInitialiseLocation = FVector(-5, 0, -88);
 	FRotator MeshInitialiseRotation = FRotator(0, -90, 0);
 	//SpringArmComponent
-	FVector SpringArmInitialiseLocation = FVector(0, 50, 100);
+	FVector SpringArmInitialiseLocation = FVector(-14, 2, 70);
+	FVector SpringArmInitialiseSocketOffset = FVector(0, 90, 30);
 
 
 	//InAir Status
@@ -129,6 +130,9 @@ protected:
 	// Input Mouse
 	void LookUp(float value);
 	void Turn(float value);
+	// Input Check
+	void CrouchSlideCheckPressed();
+	void CrouchSlideCheckReleased();
 	
 	// Crouch
 	void CrouchToggle();

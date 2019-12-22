@@ -161,6 +161,7 @@ protected:
 	float SprintSpeed = DefaultSprintSpeed;
 	float DefaultSprintSpeed = 900.0f;
 	void SetCharacterMovementSpeed(float MoveSpeed);
+	float GetCharacterMovementSpeed();
 
 
 	// Sprint
@@ -178,6 +179,7 @@ protected:
 	void EndSlide();
 	UFUNCTION(BlueprintCallable)
 	void SlideSlopeDetection();
+	void SlideSpeedCalculation();
 	float SlideSpeed = 1000.0f;
 	float SlideDuration = 1.5f;
 	float SlideTraceLength = 700.0f;

@@ -63,9 +63,7 @@ ASRCharacter::ASRCharacter()
 
 	//Global
 	bGlobalKeysInput = true;
-	bGlobalMouseInput = true;
-	
-	
+	bGlobalMouseInput = true;	
 }
 
 // Called when the game starts or when spawned
@@ -81,7 +79,7 @@ void ASRCharacter::Tick(float DeltaTime)
 	if(StanceStatus == EStanceStatus::Ess_Sliding)
 	{
 		SlideSlopeDetection();
-		//GetWorld()->GetTimerManager().SetTimer(TimerSlopeDetection, this, &ASRCharacter::SlideSlopeDetection, 0.2, false);
+		SlideSpeedCalculation();
 	}
 }
 
@@ -411,6 +409,11 @@ void ASRCharacter::SetCharacterMovementSpeed(float MoveSpeed)
 	GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 }
 
+float ASRCharacter::GetCharacterMovementSpeed()
+{
+	return GetCharacterMovement()->MaxWalkSpeed;
+}
+
 void ASRCharacter::StartSprint()
 {
 	if(StanceStatus == EStanceStatus::Ess_Crouching)
@@ -468,7 +471,7 @@ void ASRCharacter::StartJump()
 void ASRCharacter::StartSlide()
 {
 	SetStanceStatus(EStanceStatus::Ess_Sliding);
-	GetWorld()->GetTimerManager().SetTimer(TimerSlideDuration, this, &ASRCharacter::EndSlide, SlideDuration, false);
+	//GetWorld()->GetTimerManager().SetTimer(TimerSlideDuration, this, &ASRCharacter::EndSlide, SlideDuration, false);
 
 }
 
@@ -528,6 +531,33 @@ void ASRCharacter::SlideSlopeDetection()
 		{
 			SetSlideStatus(ESlideStatus::Eias_SteepSlope);
 		}
+	}
+}
+
+void ASRCharacter::SlideSpeedCalculation()
+{
+	if (SlideStatus == ESlideStatus::Eias_FlatSlope)
+	{
+		if(GetCharacterMovementSpeed() > 945)
+		{
+			SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.85f);
+		}
+		else
+		{
+			SetStanceStatus(EStanceStatus::Ess_Standing);
+		}
+	}
+	else if (SlideStatus == ESlideStatus::Eias_SlantedSlope)
+	{
+		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*1.05f);
+	}
+	else if(SlideStatus == ESlideStatus::Eias_SteepSlope)
+	{
+		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*1.1f);
+	}
+	else
+	{
+		SetSlideStatus(ESlideStatus::Eias_FlatSlope);
 	}
 }
 

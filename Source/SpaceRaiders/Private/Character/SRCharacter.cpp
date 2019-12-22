@@ -10,6 +10,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 ASRCharacter::ASRCharacter()
@@ -63,18 +64,25 @@ ASRCharacter::ASRCharacter()
 	//Global
 	bGlobalKeysInput = true;
 	bGlobalMouseInput = true;
+	
+	
 }
 
 // Called when the game starts or when spawned
 void ASRCharacter::BeginPlay()
 {
-	Super::BeginPlay();	
+	Super::BeginPlay();
 }
 
 // Called every frame
 void ASRCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if(StanceStatus == EStanceStatus::Ess_Sliding)
+	{
+		SlideSlopeDetection();
+		//GetWorld()->GetTimerManager().SetTimer(TimerSlopeDetection, this, &ASRCharacter::SlideSlopeDetection, 0.2, false);
+	}
 }
 
 // Called to bind functionality to input
@@ -133,7 +141,6 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 
 }
 
-
 void ASRCharacter::MoveForward(float value)
 {
 	
@@ -152,7 +159,9 @@ void ASRCharacter::MoveForward(float value)
 				// and Player is just pressing S...
 				if (value < 0)
 				{
-					GetCharacterMovement()->MaxWalkSpeed = BackwardsJogSpeed;
+					SetCharacterMovementSpeed(BackwardsJogSpeed);
+					
+					//GetCharacterMovement()->MaxWalkSpeed = BackwardsJogSpeed;
 					//...and is sprinting...
 					if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
 					{
@@ -168,7 +177,9 @@ void ASRCharacter::MoveForward(float value)
 				// if the player is just pressing W...
 				else
 				{
-					GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
+					SetCharacterMovementSpeed(JogSpeed);
+					
+					//GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
 					//...and player is moving forward and sprinting...
 					if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
 					{
@@ -213,7 +224,7 @@ void ASRCharacter::MoveForward(float value)
 		{//...then player is standing idling
 			SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
 		}
-		//...whilst crouchign
+		//...whilst crouching
 		else if(StanceStatus == EStanceStatus::Ess_Crouching)
 		{
 			//...then player is crouching idling
@@ -251,6 +262,10 @@ void ASRCharacter::MoveRight(float value)
 			//...then player is moving right
 			bIsMovingRight = true;
 
+			if(!bIsMovingForward)
+			{
+				SetCharacterMovementSpeed(JogSpeed);
+			}
 			if (StanceStatus == EStanceStatus::Ess_Standing)
 			{
 				//...if player moving right and not sprinting...
@@ -298,19 +313,19 @@ void ASRCharacter::CrouchSlideCheckPressed()
 	}
 	else
 	{
-		StartPowerSlide();
+		StartSlide();
 	}
 }
 
 void ASRCharacter::CrouchSlideCheckReleased()
 {
-	if (StanceStatus != EStanceStatus::Ess_PowerSliding)
+	if (StanceStatus != EStanceStatus::Ess_Sliding)
 	{
 		EndCrouch();
 	}
 	else
 	{
-		EndPowerSlide();
+		EndSlide();
 	}
 }
 
@@ -327,7 +342,7 @@ void ASRCharacter::GlobalKeysInputEnable()
 void ASRCharacter::GlobalMouseInputDisable()
 {
 	bGlobalMouseInput = false;
-}
+}	
 
 void ASRCharacter::GlobalMouseInputEnable()
 {
@@ -347,15 +362,6 @@ void ASRCharacter::CrouchToggle()
 	{
 		EndCrouch();
 	}
-	/*if (StanceStatus != EStanceStatus::Ess_PowerSliding)
-		{
-			
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Stopping Powerslide"));
-			EndPowerSlide();
-		}		*/
 }
 
 void ASRCharacter::BeginCrouch()
@@ -369,7 +375,7 @@ void ASRCharacter::BeginCrouch()
 	}
 	else
 	{
-		StartPowerSlide();
+		StartSlide();
 	}
 	
 }
@@ -400,6 +406,11 @@ bool ASRCharacter::GetShouldHardLand()
 	}
 }
 
+void ASRCharacter::SetCharacterMovementSpeed(float MoveSpeed)
+{
+	GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
+}
+
 void ASRCharacter::StartSprint()
 {
 	if(StanceStatus == EStanceStatus::Ess_Crouching)
@@ -418,7 +429,7 @@ void ASRCharacter::SprintReleased()
 
 void ASRCharacter::EndSprint()
 {
-	if(StanceStatus != EStanceStatus::Ess_PowerSliding)
+	if(StanceStatus != EStanceStatus::Ess_Sliding)
 	{
 		if (StanceStatus != EStanceStatus::Ess_Crouching)
 		{
@@ -436,38 +447,37 @@ void ASRCharacter::StartJump()
 		SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
 		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);	
 	}
-	else if(StanceStatus == EStanceStatus::Ess_PowerSliding)
+	else if(StanceStatus == EStanceStatus::Ess_Sliding)
 	{
-		EndPowerSlide();
-		SetStanceStatus(EStanceStatus::Ess_Standing);
-		SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
-		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+		EndSlide();
+		SetStanceStatus(EStanceStatus::Ess_InAir);
+		SetInAirStatus(EInAirStatus::Eias_Jumping);
+		Jump();
+
 	}
 	else
 	{
 		SetStanceStatus(EStanceStatus::Ess_InAir);
 		SetInAirStatus(EInAirStatus::Eias_Jumping);
-		//SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
-		//SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
 		Jump();
 	}
 	
 
 }
 
-void ASRCharacter::StartPowerSlide()
+void ASRCharacter::StartSlide()
 {
-	SetStanceStatus(EStanceStatus::Ess_PowerSliding);
-	GetWorld()->GetTimerManager().SetTimer(TimerPowerSlideDuration, this, &ASRCharacter::EndPowerSlide, PowerSlideDuration, false);
+	SetStanceStatus(EStanceStatus::Ess_Sliding);
+	GetWorld()->GetTimerManager().SetTimer(TimerSlideDuration, this, &ASRCharacter::EndSlide, SlideDuration, false);
 
 }
 
-void ASRCharacter::EndPowerSlide()
+void ASRCharacter::EndSlide()
 {
 	SetStanceStatus(EStanceStatus::Ess_Standing);
-	if(GetWorld()->GetTimerManager().IsTimerActive(TimerPowerSlideDuration))
+	if(GetWorld()->GetTimerManager().IsTimerActive(TimerSlideDuration))
 	{
-		GetWorld()->GetTimerManager().ClearTimer(TimerPowerSlideDuration);
+		GetWorld()->GetTimerManager().ClearTimer(TimerSlideDuration);
 	}
 	
 	if (bIsMovingForward || bIsMovingRight)
@@ -487,6 +497,38 @@ void ASRCharacter::EndPowerSlide()
 	}
 
 	
+}
+
+void ASRCharacter::SlideSlopeDetection()
+{
+	FHitResult TraceHit;
+
+	FCollisionQueryParams QueryParams;
+	FVector TraceEnd = FVector(GetMesh()->GetSocketLocation("calf_r").X, GetMesh()->GetSocketLocation("calf_r").Y, GetMesh()->GetSocketLocation("calf_r").Z) - SlideTraceLength;
+	FVector TraceStart = GetMesh()->GetSocketLocation("calf_r");
+	
+	QueryParams.AddIgnoredActor(this);
+	QueryParams.bTraceComplex = false;
+	
+	if(GetWorld()->LineTraceSingleByChannel(TraceHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams))
+	{
+		//Hit
+		UE_LOG(LogTemp, Warning, TEXT("MyCharacter's Location is %f"), TraceHit.ImpactNormal.Z);
+		DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Green,false,3,0,1);
+
+		if(TraceHit.ImpactNormal.Z >= 1.0f)
+		{
+			SetSlideStatus(ESlideStatus::Eias_FlatSlope);
+		}
+		else if(TraceHit.ImpactNormal.Z < 1.0f && TraceHit.ImpactNormal.Z >= 0.9f)
+		{
+			SetSlideStatus(ESlideStatus::Eias_SlantedSlope);
+		}
+		else
+		{
+			SetSlideStatus(ESlideStatus::Eias_SteepSlope);
+		}
+	}
 }
 
 void ASRCharacter::FreeLookOn()
@@ -516,6 +558,15 @@ void ASRCharacter::SetStanceStatus(EStanceStatus Status)
 	{
 
 	}
+	else if(StanceStatus == EStanceStatus::Ess_Sliding)
+	{
+		SetCharacterMovementSpeed(SlideSpeed);
+	}
+}
+
+void ASRCharacter::SetSlideStatus(ESlideStatus Status)
+{
+	SlideStatus = Status;
 }
 
 EStanceStatus ASRCharacter::GetStanceStatus()
@@ -530,17 +581,19 @@ void ASRCharacter::SetStandingMovementStatus(EStandingMovementStatus Status)
 
 	if (StandingMovementStatus == EStandingMovementStatus::Esms_Jogging)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
+		
 	}
 	else if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
 	{
 		if (bIsMovingRight)
 		{
-			GetCharacterMovement()->MaxWalkSpeed = DiagonalSprintSpeed;
+			SetCharacterMovementSpeed(DiagonalSprintSpeed);
+			//GetCharacterMovement()->MaxWalkSpeed = DiagonalSprintSpeed;
 		}
 		else
 		{
-			GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+			SetCharacterMovementSpeed(SprintSpeed);
+			//GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 		}
 
 	}
@@ -584,6 +637,11 @@ EInAirStatus ASRCharacter::GetInAirStatus()
 {
 	return InAirStatus;
 }
+
+/*ESlideStatus ASRCharacter::GetSlideStatus()
+{
+	//return SlideStatus();
+}*/
 
 #pragma endregion 
 

@@ -18,7 +18,7 @@ enum class EStanceStatus : uint8
 	Ess_Standing UMETA(DisplayName = "Standing"),
 	Ess_Crouching UMETA(DisplayName = "Crouching"),
 	Ess_InAir UMETA(DisplayName = "InAir"),
-	Ess_PowerSliding UMETA(DisplayName = "PowerSliding"),
+	Ess_Sliding UMETA(DisplayName = "Sliding"),
 	Ess_Max UMETA(DisplayName = "DefaultMax")
 };
 
@@ -53,6 +53,14 @@ enum class EInAirStatus : uint8
 	Eias_MAX UMETA(DisplayName = "DefaultMax"),
 };
 
+UENUM(BlueprintType)
+enum class ESlideStatus : uint8
+{
+	Eias_FlatSlope UMETA(DisplayName = "FlatSlope"),
+	Eias_SlantedSlope UMETA(DisplayName = "SlantedSlope"),
+	Eias_SteepSlope UMETA(DisplayName = "SteepSlope"),
+	Eias_MAX UMETA(DisplayName = "DefaultMax"),
+};
 
 
 UCLASS()
@@ -106,17 +114,23 @@ public:
 	ECrouchingMovementStatus CrouchingMovementStatus;
 	void SetCrouchingMovementStatus(ECrouchingMovementStatus Status);
 
+	//Crouching Movement Status
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+	ESlideStatus SlideStatus;
+	void SetSlideStatus(ESlideStatus Status);
+
 	EStanceStatus GetStanceStatus();
 	EStandingMovementStatus GetStandingMovementStatus();
 	ECrouchingMovementStatus GetCrouchingMovementStatus();
 	EInAirStatus GetInAirStatus();
+	//ESlideStatus GetSlideStatus();
 	void SetInAirStatus(EInAirStatus Status);
 	bool GetIsArmed();
 	bool GetShouldHardLand();
 
 	// Landing
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fall")
-		float FallHeight = 0;
+	float FallHeight = 0;
 	
 protected:
 	// Called when the game starts or when spawned
@@ -142,10 +156,11 @@ protected:
 
 	//Movement Properties
 	float JogSpeed = 600.0f;
-	float BackwardsJogSpeed = JogSpeed * 0.8f;
-	float DiagonalSprintSpeed = 735.0f;
+	float BackwardsJogSpeed = 400.0f;
+	float DiagonalSprintSpeed = 800.0f;
 	float SprintSpeed = DefaultSprintSpeed;
 	float DefaultSprintSpeed = 900.0f;
+	void SetCharacterMovementSpeed(float MoveSpeed);
 
 
 	// Sprint
@@ -158,12 +173,16 @@ protected:
 	// Jump
 	void StartJump();
 
-	// Power Slide
-	void StartPowerSlide();
-	void EndPowerSlide();
-	float PowerSlideSpeed = 900.0f;
-	float PowerSlideDuration = 1.5f;
-	FTimerHandle TimerPowerSlideDuration;
+	// Slide
+	void StartSlide();
+	void EndSlide();
+	UFUNCTION(BlueprintCallable)
+	void SlideSlopeDetection();
+	float SlideSpeed = 1000.0f;
+	float SlideDuration = 1.5f;
+	float SlideTraceLength = 700.0f;
+	FTimerHandle TimerSlideDuration;
+	FTimerHandle TimerSlopeDetection;
 
 	// FreeLook
 	void FreeLookOn();

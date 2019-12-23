@@ -345,7 +345,7 @@ void ASRCharacter::CrouchSlideCheckPressed()
 	else
 	{
 		SlideCheck = true;
-
+		
 	}
 }
 
@@ -511,8 +511,6 @@ void ASRCharacter::StartJump()
 void ASRCharacter::StartSlide()
 {
 	SetStanceStatus(EStanceStatus::Ess_Sliding);
-	SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
-	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
 }
 
 void ASRCharacter::EndSlide()
@@ -541,26 +539,25 @@ void ASRCharacter::EndSlide()
 
 void ASRCharacter::SlideSlopeDetection()
 {
-	FHitResult TraceHit;
+	FHitResult SlopeAngleTraceHit;
 
 	FCollisionQueryParams QueryParams;
-	FVector TraceEnd = FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - SlideTraceLength);
-	FVector TraceStart = GetActorLocation();
+	FVector SlopeAngleTraceEnd = FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - SlideTraceLength);
+	FVector SlopeAngleTraceStart = GetActorLocation();
 	
 	QueryParams.AddIgnoredActor(this);
 	QueryParams.bTraceComplex = false;
 	
-	if(GetWorld()->LineTraceSingleByChannel(TraceHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams))
+	if(GetWorld()->LineTraceSingleByChannel(SlopeAngleTraceHit, SlopeAngleTraceStart, SlopeAngleTraceEnd, ECC_Visibility, QueryParams))
 	{
 		//Hit
-		UE_LOG(LogTemp, Warning, TEXT("MyCharacter's Location is %f"), TraceHit.ImpactNormal.Z);
-		DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Green,false,3,0,1);
-
-		if(TraceHit.ImpactNormal.Z >= 1.0f)
+		DrawDebugLine(GetWorld(), SlopeAngleTraceStart, SlopeAngleTraceEnd, FColor::Green,false,3,0,1);
+		
+		if(SlopeAngleTraceHit.ImpactNormal.Z >= 1.0f)
 		{
 			SetSlideStatus(ESlideStatus::Eias_FlatSlope);
 		}
-		else if(TraceHit.ImpactNormal.Z < 1.0f && TraceHit.ImpactNormal.Z >= 0.9f)
+		else if(SlopeAngleTraceHit.ImpactNormal.Z < 1.0f && SlopeAngleTraceHit.ImpactNormal.Z >= 0.9f)
 		{
 			SetSlideStatus(ESlideStatus::Eias_SlantedSlope);
 			SlideRequest = true;
@@ -569,6 +566,23 @@ void ASRCharacter::SlideSlopeDetection()
 		{
 			SetSlideStatus(ESlideStatus::Eias_SteepSlope);
 			SlideRequest = true;
+		}
+
+		FHitResult UpDownHillTraceHit;
+		FVector ForwardVector = CameraComp->GetForwardVector();
+		FVector UpDownHillStartTrace = FVector(SlopeAngleTraceHit.Location.X, SlopeAngleTraceHit.Location.Y, SlopeAngleTraceHit.Location.Z + 90);
+		FVector UpDownHillEndTrace = (ForwardVector * 300.0f) + UpDownHillStartTrace;
+
+		DrawDebugLine(GetWorld(), UpDownHillStartTrace, UpDownHillEndTrace, FColor::Red, false, 3, 0, 2);
+		
+		if(GetWorld()->LineTraceSingleByChannel(UpDownHillTraceHit, UpDownHillStartTrace, UpDownHillEndTrace, ECC_Visibility, QueryParams))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("UPHILLL!"));
+			SetStanceStatus(EStanceStatus::Ess_Standing);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("DOWNHILLL!"))
 		}
 	}
 	else
@@ -583,25 +597,20 @@ void ASRCharacter::SlideSpeedCalculation()
 	{
 		if(GetCharacterMovementSpeed() > 850)
 		{
-			// create FLOAT that can adjust over time to slow down char. 0.8->0.83->0.85---etc
-			SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.93f);
-			/*if(GetCharacterMovementSpeed() > 1650)
+			if(GetCharacterMovementSpeed() > 1650)
 			{
 				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.8f);
 			}
 			else
 			{
 				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.93f);
-			}*/
+			}
 
 		}
 		else
 		{
-			SetStanceStatus(EStanceStatus::Ess_Standing);
-			//Reset Speed adjustment float here
-		}
-
-		
+			SetStanceStatus(EStanceStatus::Ess_Standing);		
+		}	
 	}
 	else if (SlideStatus == ESlideStatus::Eias_SlantedSlope)
 	{

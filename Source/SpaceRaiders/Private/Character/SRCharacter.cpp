@@ -76,10 +76,15 @@ void ASRCharacter::BeginPlay()
 void ASRCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
 	if(StanceStatus == EStanceStatus::Ess_Sliding)
 	{
 		SlideSlopeDetection();
 		SlideSpeedCalculation();
+	}
+	else if(SlideCheck && StanceStatus != EStanceStatus::Ess_Sliding)
+	{
+		SlideSlopeDetection();
 	}
 }
 
@@ -109,34 +114,52 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 	// Land and the character is Flailing
 	if(InAirStatus == EInAirStatus::Eias_Flailing)
 	{
-		GlobalKeysInputDisable();
-		GlobalMouseInputDisable();
-		if(FallHeight > 1300.0f)
+		if(SlideRequest && (SlideStatus == ESlideStatus::Eias_SlantedSlope || SlideStatus == ESlideStatus::Eias_SteepSlope))
 		{
-			LandDelay = HardLandDelay;
-			bShouldHardLand = true;
+			SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
+			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+			StartSlide();	
 		}
 		else
 		{
-			LandDelay = SoftLandDelay;
-			bShouldHardLand = false;
+			GlobalKeysInputDisable();
+			GlobalMouseInputDisable();
+			if (FallHeight > 1300.0f)
+			{
+				LandDelay = HardLandDelay;
+				bShouldHardLand = true;
+			}
+			else
+			{
+				LandDelay = SoftLandDelay;
+				bShouldHardLand = false;
+			}
+			GetWorld()->GetTimerManager().SetTimer(TimerGlobalKeysInput, this, &ASRCharacter::GlobalKeysInputEnable, LandDelay, false);
+			GetWorld()->GetTimerManager().SetTimer(TimerGlobalMouseInput, this, &ASRCharacter::GlobalMouseInputEnable, LandDelay, false);
 		}
-		GetWorld()->GetTimerManager().SetTimer(TimerGlobalKeysInput, this, &ASRCharacter::GlobalKeysInputEnable,LandDelay,false);
-		GetWorld()->GetTimerManager().SetTimer(TimerGlobalMouseInput, this, &ASRCharacter::GlobalMouseInputEnable, LandDelay, false);
 	}
 
-	SetInAirStatus(EInAirStatus::Eias_Nis);
 	
-	if(StandingMovementStatus == EStandingMovementStatus::Esms_Jogging || StandingMovementStatus == EStandingMovementStatus::Esms_Idling 
-		|| StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
+	if (!SlideRequest)
 	{
-		SetStanceStatus(EStanceStatus::Ess_Standing);
+		if (StandingMovementStatus == EStandingMovementStatus::Esms_Jogging || StandingMovementStatus == EStandingMovementStatus::Esms_Idling
+			|| StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
+		{
+			SetStanceStatus(EStanceStatus::Ess_Standing);
+		}
+		else if (CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Idling || CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Walking)
+		{
+			SetStanceStatus(EStanceStatus::Ess_Crouching);
+		}
 	}
-	else if(CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Idling || CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Walking)
+	else
 	{
-		SetStanceStatus(EStanceStatus::Ess_Crouching);
+		SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
+		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+		StartSlide();
 	}
-
+	
+	SetInAirStatus(EInAirStatus::Eias_Nis);
 }
 
 void ASRCharacter::MoveForward(float value)
@@ -175,29 +198,32 @@ void ASRCharacter::MoveForward(float value)
 				// if the player is just pressing W...
 				else
 				{
-					SetCharacterMovementSpeed(JogSpeed);
-					
-					//GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
-					//...and player is moving forward and sprinting...
-					if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
+					if(!SlideRequest)
 					{
-						if (bIsMovingRight)
+						SetCharacterMovementSpeed(JogSpeed);
+
+						//GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
+						//...and player is moving forward and sprinting...
+						if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
 						{
-							SprintSpeed = DiagonalSprintSpeed;
-							SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+							if (bIsMovingRight)
+							{
+								SprintSpeed = DiagonalSprintSpeed;
+								SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+							}
+							else
+							{
+								SprintSpeed = DefaultSprintSpeed;
+								SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+							}
 						}
+						//...and player is moving forward and not sprinting...
 						else
 						{
-							SprintSpeed = DefaultSprintSpeed;
-							SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+							//...then player is jogging
+							SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
 						}
-					}
-					//...and player is moving forward and not sprinting...
-					else
-					{
-						//...then player is jogging
-						SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
-					}
+					}	
 				}
 			}
 			//...and player is crouching
@@ -305,26 +331,40 @@ void ASRCharacter::Turn(float value)
 
 void ASRCharacter::CrouchSlideCheckPressed()
 {
-	if(StandingMovementStatus != EStandingMovementStatus::Esms_Sprinting)
+	if(StanceStatus != EStanceStatus::Ess_InAir)
 	{
-		BeginCrouch();
+		if (StandingMovementStatus != EStandingMovementStatus::Esms_Sprinting)
+		{
+			BeginCrouch();
+		}
+		else
+		{
+			StartSlide();
+		}
 	}
 	else
 	{
-		StartSlide();
+		SlideCheck = true;
+
 	}
 }
 
 void ASRCharacter::CrouchSlideCheckReleased()
 {
-	if (StanceStatus != EStanceStatus::Ess_Sliding)
+	if (StanceStatus != EStanceStatus::Ess_InAir)
 	{
-		EndCrouch();
+		if (StanceStatus != EStanceStatus::Ess_Sliding)
+		{
+			EndCrouch();
+		}
+		else
+		{
+			EndSlide();
+		}
 	}
-	else
-	{
-		EndSlide();
-	}
+	
+	SlideRequest = false;
+	SlideCheck = false;
 }
 
 void ASRCharacter::GlobalKeysInputDisable()
@@ -471,13 +511,14 @@ void ASRCharacter::StartJump()
 void ASRCharacter::StartSlide()
 {
 	SetStanceStatus(EStanceStatus::Ess_Sliding);
-	//GetWorld()->GetTimerManager().SetTimer(TimerSlideDuration, this, &ASRCharacter::EndSlide, SlideDuration, false);
-
+	SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
+	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
 }
 
 void ASRCharacter::EndSlide()
 {
 	SetStanceStatus(EStanceStatus::Ess_Standing);
+	SlideRequest = false;
 	if(GetWorld()->GetTimerManager().IsTimerActive(TimerSlideDuration))
 	{
 		GetWorld()->GetTimerManager().ClearTimer(TimerSlideDuration);
@@ -489,10 +530,6 @@ void ASRCharacter::EndSlide()
 		{
 			SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
 		}
-		/*else if (CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Walking)
-		{
-			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Walking);
-		}*/
 	}
 	else
 	{
@@ -507,8 +544,8 @@ void ASRCharacter::SlideSlopeDetection()
 	FHitResult TraceHit;
 
 	FCollisionQueryParams QueryParams;
-	FVector TraceEnd = FVector(GetMesh()->GetSocketLocation("calf_r").X, GetMesh()->GetSocketLocation("calf_r").Y, GetMesh()->GetSocketLocation("calf_r").Z) - SlideTraceLength;
-	FVector TraceStart = GetMesh()->GetSocketLocation("calf_r");
+	FVector TraceEnd = FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - SlideTraceLength);
+	FVector TraceStart = GetActorLocation();
 	
 	QueryParams.AddIgnoredActor(this);
 	QueryParams.bTraceComplex = false;
@@ -526,11 +563,17 @@ void ASRCharacter::SlideSlopeDetection()
 		else if(TraceHit.ImpactNormal.Z < 1.0f && TraceHit.ImpactNormal.Z >= 0.9f)
 		{
 			SetSlideStatus(ESlideStatus::Eias_SlantedSlope);
+			SlideRequest = true;
 		}
 		else
 		{
 			SetSlideStatus(ESlideStatus::Eias_SteepSlope);
+			SlideRequest = true;
 		}
+	}
+	else
+	{
+		SetSlideStatus(ESlideStatus::Eias_NoSlope);
 	}
 }
 
@@ -538,14 +581,27 @@ void ASRCharacter::SlideSpeedCalculation()
 {
 	if (SlideStatus == ESlideStatus::Eias_FlatSlope)
 	{
-		if(GetCharacterMovementSpeed() > 945)
+		if(GetCharacterMovementSpeed() > 850)
 		{
-			SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.85f);
+			// create FLOAT that can adjust over time to slow down char. 0.8->0.83->0.85---etc
+			SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.93f);
+			/*if(GetCharacterMovementSpeed() > 1650)
+			{
+				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.8f);
+			}
+			else
+			{
+				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.93f);
+			}*/
+
 		}
 		else
 		{
 			SetStanceStatus(EStanceStatus::Ess_Standing);
+			//Reset Speed adjustment float here
 		}
+
+		
 	}
 	else if (SlideStatus == ESlideStatus::Eias_SlantedSlope)
 	{
@@ -590,7 +646,10 @@ void ASRCharacter::SetStanceStatus(EStanceStatus Status)
 	}
 	else if(StanceStatus == EStanceStatus::Ess_Sliding)
 	{
-		SetCharacterMovementSpeed(SlideSpeed);
+		if(GetCharacterMovementSpeed()<SlideSpeed)
+		{
+			SetCharacterMovementSpeed(SlideSpeed);
+		}
 	}
 }
 

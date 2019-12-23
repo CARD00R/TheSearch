@@ -86,6 +86,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
 	bool bIsArmed;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	bool SlideRequest;
 
 	
 

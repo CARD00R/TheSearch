@@ -59,6 +59,7 @@ enum class ESlideStatus : uint8
 	Eias_FlatSlope UMETA(DisplayName = "FlatSlope"),
 	Eias_SlantedSlope UMETA(DisplayName = "SlantedSlope"),
 	Eias_SteepSlope UMETA(DisplayName = "SteepSlope"),
+	Eias_NoSlope UMETA(DisplayName = "NoSlope"),
 	Eias_MAX UMETA(DisplayName = "DefaultMax"),
 };
 
@@ -131,7 +132,10 @@ public:
 	// Landing
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fall")
 	float FallHeight = 0;
-	
+
+	// Sliding
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+	bool SlideRequest = false;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -177,12 +181,12 @@ protected:
 	// Slide
 	void StartSlide();
 	void EndSlide();
-	UFUNCTION(BlueprintCallable)
 	void SlideSlopeDetection();
 	void SlideSpeedCalculation();
 	float SlideSpeed = 1000.0f;
 	float SlideDuration = 1.5f;
-	float SlideTraceLength = 700.0f;
+	float SlideTraceLength = 1500.0f;
+	bool SlideCheck = false;
 	FTimerHandle TimerSlideDuration;
 	FTimerHandle TimerSlopeDetection;
 

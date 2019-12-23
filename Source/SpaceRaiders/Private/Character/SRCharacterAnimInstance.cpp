@@ -48,17 +48,18 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 		{
 			//Set numerous variables
 			//Status
-			StanceStatus = Character->StanceStatus;
+			StanceStatus = Character->GetStanceStatus();
 			
-			InAirStatus = Character->InAirStatus;
+			InAirStatus = Character->GetInAirStatus();
 			
-			StandingMovementStatus = Character->StandingMovementStatus;
+			StandingMovementStatus = Character->GetStandingMovementStatus();
 			
-			CrouchingMovementStatus = Character->CrouchingMovementStatus;
+			CrouchingMovementStatus = Character->GetCrouchingMovementStatus();
 			
 			bIsArmed = Character->GetIsArmed();
 			bShouldHardLand = Character->GetShouldHardLand();
 			Character->FallHeight = FallHeight;
+			SlideRequest = Character->SlideRequest;
 			
 			DetermineVerticalVelocityProperties();
 		}

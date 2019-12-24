@@ -237,6 +237,10 @@ void ASRCharacter::MoveForward(float value)
 		{
 			//...then player is not moving forward
 			bIsMovingForward = false;
+			if(StanceStatus == EStanceStatus::Ess_Sliding)
+			{
+				EndSlide();
+			}
 		}
 	}
 	
@@ -327,14 +331,6 @@ void ASRCharacter::Turn(float value)
 	{
 
 		float valueMultiplier = 1.0f;
-		/*if(StanceStatus == EStanceStatus::Ess_Sliding)
-		{
-			valueMultiplier = 0.6f;
-		}
-		else
-		{
-			valueMultiplier = 1.0f;
-		}*/
 		AddControllerYawInput(value*valueMultiplier);
 	}
 }
@@ -343,19 +339,21 @@ void ASRCharacter::CrouchSlideCheckPressed()
 {
 	if(StanceStatus != EStanceStatus::Ess_InAir)
 	{
-		if (StandingMovementStatus != EStandingMovementStatus::Esms_Sprinting)
+		if (!bJustPressedSprint)
 		{
 			BeginCrouch();
 		}
 		else
 		{
-			StartSlide();
+			if(bIsMovingForward)
+			{
+				StartSlide();
+			}
 		}
 	}
 	else
 	{
 		SlideCheck = true;
-		
 	}
 }
 

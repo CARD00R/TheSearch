@@ -86,6 +86,17 @@ public:
 	UCameraComponent* CameraComp;
 	
 	APlayerController* PlayerController;
+
+	//Capusule
+	float StandingCapsuleHeight = 88.0f;
+	float StandingCapsuleRadius = 20.0f;
+	float CrouchingCapsuleHeight = 63.0f;
+	float CrouchingCapsuleRadius = 27.0f;
+	float SlidingCapsuleHeight = 30.0f;
+	float SlidingCapsuleRadius = 30.0f;
+	
+
+
 	
 	// Construction Variables
 	//Mesh
@@ -164,16 +175,18 @@ protected:
 	float DiagonalSprintSpeed = 800.0f;
 	float SprintSpeed = DefaultSprintSpeed;
 	float DefaultSprintSpeed = 900.0f;
+	float CrouchSpeed = 300.0f;
 	void SetCharacterMovementSpeed(float MoveSpeed);
 	float GetCharacterMovementSpeed();
-
 
 	// Sprint
 	void StartSprint();
 	void SprintReleased();
 	void EndSprint();
-	float EndSprintDelay=0.3f;
+	void JustPressedSprint();
+	float EndSprintDelay=0.5f;
 	FTimerHandle TimerEndSprint;
+	bool bJustPressedSprint = false;
 	
 	// Jump
 	void StartJump();

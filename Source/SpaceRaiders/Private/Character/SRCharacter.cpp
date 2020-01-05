@@ -86,6 +86,11 @@ void ASRCharacter::Tick(float DeltaTime)
 	{
 		SlideSlopeDetection();
 	}
+
+	if(bCheckCapsuleProperties)
+	{
+		CheckCapsuleHeightRadius();
+	}
 }
 
 // Called to bind functionality to input
@@ -138,27 +143,35 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 			GetWorld()->GetTimerManager().SetTimer(TimerGlobalMouseInput, this, &ASRCharacter::GlobalMouseInputEnable, LandDelay, false);
 		}
 	}
-
-	
-	if (!SlideRequest)
-	{
-		if (StandingMovementStatus == EStandingMovementStatus::Esms_Jogging || StandingMovementStatus == EStandingMovementStatus::Esms_Idling
-			|| StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
-		{
-			SetStanceStatus(EStanceStatus::Ess_Standing);
-		}
-		else if (CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Idling || CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Walking)
-		{
-			SetStanceStatus(EStanceStatus::Ess_Crouching);
-		}
-	}
 	else
 	{
-		SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
-		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
-		StartSlide();
+		if (!SlideRequest)
+		{
+			//SetStanceStatus(EStanceStatus::Ess_Standing);
+
+			if (StandingMovementStatus == EStandingMovementStatus::Esms_Jogging || StandingMovementStatus == EStandingMovementStatus::Esms_Idling
+				|| StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
+			{
+				SetStanceStatus(EStanceStatus::Ess_Standing);
+			}
+			else if (CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Idling || CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Walking)
+			{
+				SetStanceStatus(EStanceStatus::Ess_Crouching);
+			}
+		}
+		else
+		{
+			if(SlideStatus != ESlideStatus::Eias_FlatSlope)
+			{
+				SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
+				SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+				StartSlide();
+			}
+
+		}
+
 	}
-	
+
 	SetInAirStatus(EInAirStatus::Eias_Nis);
 }
 
@@ -335,6 +348,91 @@ void ASRCharacter::Turn(float value)
 	}
 }
 
+void ASRCharacter::CheckCapsuleHeightRadius()
+{
+	bool bHeightDone = false;
+	bool bRadiusDone = false;
+	
+	if(GetStanceStatus() == EStanceStatus::Ess_Standing || GetInAirStatus() != EInAirStatus::Eias_Nis)
+	{
+		GetMesh()->SetRelativeLocation(FVector(-5, 0, -88));
+		if (GetCapsuleComponent()->GetScaledCapsuleHalfHeight() < 87.0f || GetCapsuleComponent()->GetScaledCapsuleHalfHeight() > 89.0f)
+		{
+			GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(GetCapsuleComponent()->GetScaledCapsuleHalfHeight(), StandingCapsuleHeight, 0.2));
+		}
+		else
+		{
+			bHeightDone = true;
+		}
+		
+		if (GetCapsuleComponent()->GetScaledCapsuleRadius() < 19.0f || GetCapsuleComponent()->GetScaledCapsuleRadius() > 21.0f)
+		{
+			GetCapsuleComponent()->SetCapsuleRadius(FMath::Lerp(GetCapsuleComponent()->GetScaledCapsuleRadius(), StandingCapsuleRadius, 0.2));
+		}
+		else
+		{
+			bRadiusDone = true;
+		}
+
+		if(bHeightDone && bRadiusDone)
+		{
+			bCheckCapsuleProperties = false;
+		}
+	}
+	else if(GetStanceStatus() == EStanceStatus::Ess_Crouching)
+	{
+		GetMesh()->SetRelativeLocation(FVector(0, 0, -63));
+		if (GetCapsuleComponent()->GetScaledCapsuleHalfHeight() < 62 || GetCapsuleComponent()->GetScaledCapsuleHalfHeight() > 64)
+		{
+			GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(GetCapsuleComponent()->GetScaledCapsuleHalfHeight(), CrouchingCapsuleHeight, 0.2));
+		}
+		else
+		{
+			bHeightDone = true;
+		}
+		if (GetCapsuleComponent()->GetScaledCapsuleRadius() < 26 || GetCapsuleComponent()->GetScaledCapsuleRadius() > 28)
+		{
+			GetCapsuleComponent()->SetCapsuleRadius(FMath::Lerp(GetCapsuleComponent()->GetScaledCapsuleRadius(), CrouchingCapsuleRadius, 0.2));
+		}
+		else
+		{
+			bRadiusDone = true;
+		}
+
+		if (bHeightDone && bRadiusDone)
+		{
+			bCheckCapsuleProperties = false;
+		}
+		
+		UE_LOG(LogTemp, Warning, TEXT("CHanging cap size"));
+	}
+	else if(GetStanceStatus() == EStanceStatus::Ess_Sliding)
+	{
+		GetMesh()->SetRelativeLocation(FVector(0, -25, -25));
+		if (GetCapsuleComponent()->GetScaledCapsuleHalfHeight() < 29 || GetCapsuleComponent()->GetScaledCapsuleHalfHeight() > 31)
+		{
+			GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(GetCapsuleComponent()->GetScaledCapsuleHalfHeight(), SlidingCapsuleHeight, 0.4));
+		}
+		else
+		{
+			bHeightDone = true;
+		}
+		if (GetCapsuleComponent()->GetScaledCapsuleRadius() < 29 || GetCapsuleComponent()->GetScaledCapsuleRadius() > 31)
+		{
+			GetCapsuleComponent()->SetCapsuleRadius(FMath::Lerp(GetCapsuleComponent()->GetScaledCapsuleRadius(), SlidingCapsuleRadius, 0.4));
+		}
+		else
+		{
+			bRadiusDone = true;
+		}
+		if (bHeightDone && bRadiusDone)
+		{
+			bCheckCapsuleProperties = false;
+		}
+	}
+
+}
+
 void ASRCharacter::CrouchSlideCheckPressed()
 {
 	if(StanceStatus != EStanceStatus::Ess_InAir)
@@ -414,13 +512,11 @@ void ASRCharacter::BeginCrouch()
 {
 	if(!bJustPressedSprint)
 	{
-		//Crouch();
 		SetStanceStatus(EStanceStatus::Ess_Crouching);
 		SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
 		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Idling);
 		GetMesh()->SetRelativeLocation(FVector(0, 0, -63));
-		GetCapsuleComponent()->SetCapsuleHalfHeight(CrouchingCapsuleHeight);
-		GetCapsuleComponent()->SetCapsuleRadius(CrouchingCapsuleRadius);
+		bCheckCapsuleProperties = true;
 		SetCharacterMovementSpeed(CrouchSpeed);
 		
 	}
@@ -433,14 +529,11 @@ void ASRCharacter::BeginCrouch()
 
 void ASRCharacter::EndCrouch()
 {
-
-	//UnCrouch();
 	SetStanceStatus(EStanceStatus::Ess_Standing);
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
 	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
 	GetMesh()->SetRelativeLocation(FVector(0, 0, -88));
-	GetCapsuleComponent()->SetCapsuleHalfHeight(StandingCapsuleHeight);
-	GetCapsuleComponent()->SetCapsuleRadius(StandingCapsuleRadius);
+	bCheckCapsuleProperties = true;
 }
 
 bool ASRCharacter::GetIsArmed()
@@ -539,9 +632,8 @@ void ASRCharacter::StartJump()
 void ASRCharacter::StartSlide()
 {
 	SetStanceStatus(EStanceStatus::Ess_Sliding);
-	//GetMesh()->SetRelativeLocation(FVector(0, -25, -25));
-	//GetCapsuleComponent()->SetCapsuleHalfHeight(SlidingCapsuleHeight);
-	//GetCapsuleComponent()->SetCapsuleRadius(SlidingCapsuleRadius);
+	bCheckCapsuleProperties = true;
+	GetMesh()->SetRelativeLocation(FVector(0, -25, -25));
 }
 
 void ASRCharacter::EndSlide()
@@ -550,11 +642,12 @@ void ASRCharacter::EndSlide()
 	{
 		GetWorld()->GetTimerManager().ClearTimer(TimerSlideDuration);
 	}*/
-	UE_LOG(LogTemp, Warning, TEXT("ENDSLIDE"));
+	bCheckCapsuleProperties = true;
+
 	if(!SlideRequest)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("WANT TO STAND"));
 		SetStanceStatus(EStanceStatus::Ess_Standing);
+		GetMesh()->SetRelativeLocation(FVector(-5, 0, -88));
 		if ((bIsMovingForward || bIsMovingRight))
 		{
 			if (StandingMovementStatus == EStandingMovementStatus::Esms_Jogging || StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
@@ -569,9 +662,8 @@ void ASRCharacter::EndSlide()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("WANT TO CROUCH"));
 		BeginCrouch();
-		
+		GetMesh()->SetRelativeLocation(FVector(0, 0, -63));
 		if ((bIsMovingForward || bIsMovingRight))
 		{
 			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Walking);
@@ -619,20 +711,51 @@ void ASRCharacter::SlideSlopeDetection()
 			SlideRequest = true;
 		}
 
-		FHitResult UpDownHillTraceHit;
+		/*FHitResult UpDownHillTraceHit;
 		FVector ForwardVector = CameraComp->GetForwardVector();
 		FVector UpDownHillStartTrace = FVector(SlopeAngleTraceHit.Location.X, SlopeAngleTraceHit.Location.Y, SlopeAngleTraceHit.Location.Z + 90);
-		FVector UpDownHillEndTrace = (ForwardVector * 300.0f) + UpDownHillStartTrace;
+		FVector UpDownHillEndTrace = (ForwardVector * 600.0f) + UpDownHillStartTrace;
 
 		DrawDebugLine(GetWorld(), UpDownHillStartTrace, UpDownHillEndTrace, FColor::Red, false, 3, 0, 2);
-		
-		if(GetWorld()->LineTraceSingleByChannel(UpDownHillTraceHit, UpDownHillStartTrace, UpDownHillEndTrace, ECC_Visibility, QueryParams))
+
+		GetWorld()->LineTraceSingleByChannel(UpDownHillTraceHit, UpDownHillStartTrace, UpDownHillEndTrace, ECC_Visibility, QueryParams);
+
+		if()
 		{
-			EndSlide();
+			float Startpoint = UpDownHillStartTrace.Z;
+			float EndPoint = UpDownHillTraceHit.ImpactPoint.Z;
+			float PointDifference = Startpoint - EndPoint;
+			UE_LOG(LogTemp, Warning, TEXT("%f"), PointDifference);
 		}
 		else
 		{
+			float Startpoint = UpDownHillStartTrace.Z;
+			float EndPoint = UpDownHillEndTrace.Z;
+			float PointDifference = Startpoint - EndPoint;
+			UE_LOG(LogTemp, Warning, TEXT("%f"), PointDifference);
+		}*/
+		
+		FHitResult UpDownHillTraceHit;
+		FVector ForwardVector = CameraComp->GetUpVector();
+		FVector UpDownHillStartTrace = FVector(SlopeAngleTraceHit.Location.X, SlopeAngleTraceHit.Location.Y, SlopeAngleTraceHit.Location.Z);
+		FVector UpDownHillTrueStartTrace = (ForwardVector * 100.0f) + UpDownHillStartTrace; //(ForwardVector * 600.0f) +
+		FVector UpDownHillEndTrace = FVector(UpDownHillTrueStartTrace.X, UpDownHillTrueStartTrace.Y, UpDownHillTrueStartTrace.Z - 700.0f); //- 700.0f);
 
+		DrawDebugLine(GetWorld(), UpDownHillTrueStartTrace, UpDownHillEndTrace, FColor::Red, false, 8, 0, 9);
+
+		if(GetWorld()->LineTraceSingleByChannel(UpDownHillTraceHit, UpDownHillTrueStartTrace, UpDownHillEndTrace, ECC_Visibility, QueryParams))
+		{
+			float Startpoint = SlopeAngleTraceHit.ImpactPoint.Z;
+			float EndPoint = UpDownHillTraceHit.ImpactPoint.Z;
+			float PointDifference = Startpoint - EndPoint;
+			if(PointDifference < 0)
+			{
+				EndSlide();
+			}
+			UE_LOG(LogTemp, Warning, TEXT("%f"), PointDifference);
+		}
+		else
+		{
 		}
 	}
 	else
@@ -649,11 +772,11 @@ void ASRCharacter::SlideSpeedCalculation()
 		{
 			if(GetCharacterMovementSpeed() > 1650)
 			{
-				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.8f);
+				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.97f);
 			}
 			else
 			{
-				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.93f);
+				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.99f);
 			}
 
 		}
@@ -664,11 +787,11 @@ void ASRCharacter::SlideSpeedCalculation()
 	}
 	else if (SlideStatus == ESlideStatus::Eias_SlantedSlope)
 	{
-		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*1.05f);
+		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*1.005f);
 	}
 	else if(SlideStatus == ESlideStatus::Eias_SteepSlope)
 	{
-		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*1.1f);
+		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*1.01f);
 	}
 	else
 	{
@@ -697,14 +820,15 @@ void ASRCharacter::SetStanceStatus(EStanceStatus Status)
 
 	if (StanceStatus == EStanceStatus::Ess_Standing)
 	{
-
+		GetMesh()->SetRelativeLocation(FVector(-5, 0, -88));
 	}
 	else if (StanceStatus == EStanceStatus::Ess_Crouching)
 	{
-
+		GetMesh()->SetRelativeLocation(FVector(0, 0, -63));
 	}
 	else if(StanceStatus == EStanceStatus::Ess_Sliding)
 	{
+		GetMesh()->SetRelativeLocation(FVector(0, -25, -25));
 		if(GetCharacterMovementSpeed()<SlideSpeed)
 		{
 			SetCharacterMovementSpeed(SlideSpeed);
@@ -760,14 +884,14 @@ void ASRCharacter::SetCrouchingMovementStatus(ECrouchingMovementStatus Status)
 {
 	//Set Crouching movement status to the input status
 	CrouchingMovementStatus = Status;
-
+	SetCharacterMovementSpeed(CrouchSpeed);
 	if (CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Idling)
 	{
 
 	}
 	else if (CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Walking)
 	{
-
+		
 	}
 }
 
@@ -786,10 +910,7 @@ EInAirStatus ASRCharacter::GetInAirStatus()
 	return InAirStatus;
 }
 
-/*ESlideStatus ASRCharacter::GetSlideStatus()
-{
-	//return SlideStatus();
-}*/
+
 
 #pragma endregion 
 

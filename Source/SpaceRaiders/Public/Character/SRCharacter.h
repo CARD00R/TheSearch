@@ -131,14 +131,18 @@ public:
 	ESlideStatus SlideStatus;
 	void SetSlideStatus(ESlideStatus Status);
 
+
 	EStanceStatus GetStanceStatus();
 	EStandingMovementStatus GetStandingMovementStatus();
 	ECrouchingMovementStatus GetCrouchingMovementStatus();
 	EInAirStatus GetInAirStatus();
-	//ESlideStatus GetSlideStatus();
+
 	void SetInAirStatus(EInAirStatus Status);
 	bool GetIsArmed();
 	bool GetShouldHardLand();
+	//Capsule
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+	bool bCheckCapsuleProperties = false;
 
 	// Landing
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fall")
@@ -159,9 +163,12 @@ protected:
 	// Input Mouse
 	void LookUp(float value);
 	void Turn(float value);
+	//Capsule
+	void CheckCapsuleHeightRadius();
 	// Input Check
 	void CrouchSlideCheckPressed();
 	void CrouchSlideCheckReleased();
+
 	
 	// Crouch
 	void CrouchToggle();
@@ -184,7 +191,7 @@ protected:
 	void SprintReleased();
 	void EndSprint();
 	void JustPressedSprint();
-	float EndSprintDelay=0.5f;
+	float EndSprintDelay=1.1f;
 	FTimerHandle TimerEndSprint;
 	bool bJustPressedSprint = false;
 	

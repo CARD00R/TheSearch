@@ -100,7 +100,9 @@ void USRCharacterAnimInstance::DetermineVerticalVelocityProperties()
 		FallHeightStartingZ = StoredZLocation;
 	}
 	else
-	{			
+	{
+		Character->bCheckCapsuleProperties = true;
+		
 		if(FallHeight > FallHeightFlailLimit)
 		{
 			Character->SetInAirStatus(EInAirStatus::Eias_Flailing);		
@@ -108,6 +110,7 @@ void USRCharacterAnimInstance::DetermineVerticalVelocityProperties()
 		else
 		{
 			Character->SetInAirStatus(EInAirStatus::Eias_Falling);
+			
 			bShouldResetFallHeight = true;
 		}
 

@@ -82,7 +82,7 @@ void ASRCharacter::Tick(float DeltaTime)
 		SlideSlopeDetection();
 		SlideSpeedCalculation();
 	}
-	else if(SlideCheck && StanceStatus != EStanceStatus::Ess_Sliding)
+	else if(SlideCheck && StanceStatus != EStanceStatus::Ess_Sliding && InAirStatus != EInAirStatus::Eias_Nis)
 	{
 		SlideSlopeDetection();
 	}
@@ -192,6 +192,22 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 				SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
 				StartSlide(); 
 			}
+			else
+			{
+				SetStanceStatus(EStanceStatus::Ess_Standing);
+
+				if (StandingMovementStatus == EStandingMovementStatus::Esms_Jogging || StandingMovementStatus == EStandingMovementStatus::Esms_Idling
+					|| StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
+				{
+					SetStanceStatus(EStanceStatus::Ess_Standing);
+				}
+				else if (CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Idling || CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Walking)
+				{
+					SetStanceStatus(EStanceStatus::Ess_Crouching);
+				}
+			}
+
+			
 
 		}
 
@@ -477,9 +493,18 @@ void ASRCharacter::CrouchSlideCheckPressed()
 	}
 	else
 	{
-		SlideCheck = true;
+		if (bIsMovingForward)
+		{
+			SlideCheck = true;
+			//SlideRequest = true;
+		}
+
+	}
+	if(bIsMovingForward)
+	{
 		SlideRequest = true;
 	}
+
 }
 
 void ASRCharacter::CrouchSlideCheckReleased()
@@ -608,11 +633,11 @@ void ASRCharacter::StartSprint()
 		bJustPressedSprint = true;
 	}
 	
-	
 	if(StanceStatus == EStanceStatus::Ess_Crouching)
 	{
 		EndCrouch();
 	}
+	
 	SetStanceStatus(EStanceStatus::Ess_Standing);
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
 	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
@@ -669,9 +694,19 @@ void ASRCharacter::StartJump()
 
 void ASRCharacter::StartSlide()
 {
-	SetStanceStatus(EStanceStatus::Ess_Sliding);
-	bCheckCapsuleProperties = true;
-	GetMesh()->SetRelativeLocation(FVector(0, -25, -25));
+	if(bIsMovingForward)
+	{
+		SetStanceStatus(EStanceStatus::Ess_Sliding);
+		bCheckCapsuleProperties = true;
+		GetMesh()->SetRelativeLocation(FVector(0, -25, -25));
+
+		if (GetWorld()->GetTimerManager().IsTimerActive(TimerEndSprint))
+		{
+			GetWorld()->GetTimerManager().ClearTimer(TimerEndSprint);
+		}
+		bJustPressedSprint = false;
+		
+	}
 }
 
 void ASRCharacter::EndSlide()
@@ -707,6 +742,7 @@ void ASRCharacter::EndSlide()
 	}
 
 	bCheckCapsuleProperties = true;
+	//SlideRequest = false;
 }
 
 void ASRCharacter::SlideSlopeDetection()

@@ -119,14 +119,39 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 	// Land and the character is Flailing
 	if(InAirStatus == EInAirStatus::Eias_Flailing)
 	{
-		if(SlideRequest && (SlideStatus == ESlideStatus::Eias_SlantedSlope || SlideStatus == ESlideStatus::Eias_SteepSlope))
+		if(SlideRequest)
 		{
-			SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
-			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
-			StartSlide();	
+			if(SlideStatus != ESlideStatus::Eias_FlatSlope)
+			{
+				SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
+				SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+				StartSlide();
+			}
+			else
+			{
+				SlideRequest = false;
+				SetStanceStatus(EStanceStatus::Ess_Standing);
+				
+				GlobalKeysInputDisable();
+				GlobalMouseInputDisable();
+				if (FallHeight > 1300.0f)
+				{
+					LandDelay = HardLandDelay;
+					bShouldHardLand = true;
+				}
+				else
+				{
+					LandDelay = SoftLandDelay;
+					bShouldHardLand = false;
+				}
+				GetWorld()->GetTimerManager().SetTimer(TimerGlobalKeysInput, this, &ASRCharacter::GlobalKeysInputEnable, LandDelay, false);
+				GetWorld()->GetTimerManager().SetTimer(TimerGlobalMouseInput, this, &ASRCharacter::GlobalMouseInputEnable, LandDelay, false);
+			}
 		}
 		else
 		{
+			SlideRequest = false;
+			SetStanceStatus(EStanceStatus::Ess_Standing);
 			GlobalKeysInputDisable();
 			GlobalMouseInputDisable();
 			if (FallHeight > 1300.0f)
@@ -147,7 +172,7 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 	{
 		if (!SlideRequest)
 		{
-			//SetStanceStatus(EStanceStatus::Ess_Standing);
+			SetStanceStatus(EStanceStatus::Ess_Standing);
 
 			if (StandingMovementStatus == EStandingMovementStatus::Esms_Jogging || StandingMovementStatus == EStandingMovementStatus::Esms_Idling
 				|| StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
@@ -165,7 +190,7 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 			{
 				SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
 				SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
-				StartSlide();
+				StartSlide(); 
 			}
 
 		}
@@ -403,9 +428,7 @@ void ASRCharacter::CheckCapsuleHeightRadius()
 		{
 			bCheckCapsuleProperties = false;
 		}
-		
-		UE_LOG(LogTemp, Warning, TEXT("CHanging cap size"));
-	}
+}
 	else if(GetStanceStatus() == EStanceStatus::Ess_Sliding)
 	{
 		GetMesh()->SetRelativeLocation(FVector(0, -25, -25));
@@ -443,15 +466,19 @@ void ASRCharacter::CrouchSlideCheckPressed()
 		}
 		else
 		{
-			if(bIsMovingForward)
+			if (bIsMovingForward)
 			{
 				StartSlide();
+				//SetStanceStatus(EStanceStatus::Ess_Crouching);
+				//SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
+				//SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Idling);
 			}
 		}
 	}
 	else
 	{
 		SlideCheck = true;
+		SlideRequest = true;
 	}
 }
 
@@ -467,6 +494,11 @@ void ASRCharacter::CrouchSlideCheckReleased()
 		{
 			EndSlide();
 		}
+	}
+	else
+	{
+		SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
 	}
 	
 	SlideRequest = false;
@@ -522,7 +554,7 @@ void ASRCharacter::BeginCrouch()
 	}
 	else
 	{
-		StartSlide();
+		//StartSlide();
 	}
 	
 }
@@ -565,6 +597,12 @@ float ASRCharacter::GetCharacterMovementSpeed()
 
 void ASRCharacter::StartSprint()
 {
+	if(GetWorld()->GetTimerManager().IsTimerActive(TimerEndSprint))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerEndSprint);
+	}
+	//GetWorld()->GetTimerManager().SetTimer(TimerEndSprint, this, &ASRCharacter::JustPressedSprint, EndSprintDelay, false);
+	
 	if(StanceStatus == EStanceStatus::Ess_Standing)
 	{
 		bJustPressedSprint = true;
@@ -638,12 +676,6 @@ void ASRCharacter::StartSlide()
 
 void ASRCharacter::EndSlide()
 {	
-	/*if(GetWorld()->GetTimerManager().IsTimerActive(TimerSlideDuration))
-	{
-		GetWorld()->GetTimerManager().ClearTimer(TimerSlideDuration);
-	}*/
-	bCheckCapsuleProperties = true;
-
 	if(!SlideRequest)
 	{
 		SetStanceStatus(EStanceStatus::Ess_Standing);
@@ -660,7 +692,7 @@ void ASRCharacter::EndSlide()
 			SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
 		}
 	}
-	else
+	else if(SlideRequest && GetInAirStatus() == EInAirStatus::Eias_Nis)
 	{
 		BeginCrouch();
 		GetMesh()->SetRelativeLocation(FVector(0, 0, -63));
@@ -673,11 +705,8 @@ void ASRCharacter::EndSlide()
 			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Idling);
 		}
 	}
-	if(StanceStatus != EStanceStatus::Ess_InAir)
-	{
-		//SlideRequest = false;
-	}
 
+	bCheckCapsuleProperties = true;
 }
 
 void ASRCharacter::SlideSlopeDetection()
@@ -739,7 +768,7 @@ void ASRCharacter::SlideSlopeDetection()
 		FVector ForwardVector = CameraComp->GetUpVector();
 		FVector UpDownHillStartTrace = FVector(SlopeAngleTraceHit.Location.X, SlopeAngleTraceHit.Location.Y, SlopeAngleTraceHit.Location.Z);
 		FVector UpDownHillTrueStartTrace = (ForwardVector * 100.0f) + UpDownHillStartTrace; //(ForwardVector * 600.0f) +
-		FVector UpDownHillEndTrace = FVector(UpDownHillTrueStartTrace.X, UpDownHillTrueStartTrace.Y, UpDownHillTrueStartTrace.Z - 700.0f); //- 700.0f);
+		FVector UpDownHillEndTrace = FVector(UpDownHillTrueStartTrace.X, UpDownHillTrueStartTrace.Y, UpDownHillTrueStartTrace.Z - 950.0f); //- 700.0f);
 
 		DrawDebugLine(GetWorld(), UpDownHillTrueStartTrace, UpDownHillEndTrace, FColor::Red, false, 8, 0, 9);
 
@@ -752,7 +781,7 @@ void ASRCharacter::SlideSlopeDetection()
 			{
 				EndSlide();
 			}
-			UE_LOG(LogTemp, Warning, TEXT("%f"), PointDifference);
+			//UE_LOG(LogTemp, Warning, TEXT("%f"), PointDifference);
 		}
 		else
 		{
@@ -772,11 +801,11 @@ void ASRCharacter::SlideSpeedCalculation()
 		{
 			if(GetCharacterMovementSpeed() > 1650)
 			{
-				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.97f);
+				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.9895f);
 			}
 			else
 			{
-				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.99f);
+				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.995f);
 			}
 
 		}

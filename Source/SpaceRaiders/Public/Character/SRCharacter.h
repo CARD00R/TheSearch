@@ -193,6 +193,7 @@ protected:
 	void JustPressedSprint();
 	float EndSprintDelay=1.1f;
 	FTimerHandle TimerEndSprint;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bJustPressedSprint = false;
 	
 	// Jump

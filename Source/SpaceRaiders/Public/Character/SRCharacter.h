@@ -186,6 +186,7 @@ protected:
 	void SetCharacterMovementSpeed(float MoveSpeed);
 	float GetCharacterMovementSpeed();
 
+
 	// Sprint
 	void StartSprint();
 	void SprintReleased();
@@ -195,6 +196,7 @@ protected:
 	FTimerHandle TimerEndSprint;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bJustPressedSprint = false;
+
 	
 	// Jump
 	void StartJump();
@@ -210,6 +212,7 @@ protected:
 	bool SlideCheck = false;
 	FTimerHandle TimerSlideDuration;
 	FTimerHandle TimerSlopeDetection;
+
 
 	// FreeLook
 	void FreeLookOn();

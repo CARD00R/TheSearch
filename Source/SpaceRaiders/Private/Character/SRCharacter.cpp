@@ -86,7 +86,6 @@ void ASRCharacter::Tick(float DeltaTime)
 	{
 		SlideSlopeDetection();
 	}
-
 	if(bCheckCapsuleProperties)
 	{
 		CheckCapsuleHeightRadius();
@@ -121,7 +120,7 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 	{
 		if(SlideRequest)
 		{
-			if(SlideStatus != ESlideStatus::Eias_FlatSlope)
+			if(SlideStatus != ESlideStatus::Eias_FlatSlope || GetCharacterMovementSpeed() > 1650)
 			{
 				SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
 				SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
@@ -254,8 +253,6 @@ void ASRCharacter::MoveForward(float value)
 				{
 					if(!SlideRequest)
 					{
-						SetCharacterMovementSpeed(JogSpeed);
-
 						//GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
 						//...and player is moving forward and sprinting...
 						if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
@@ -264,11 +261,26 @@ void ASRCharacter::MoveForward(float value)
 							{
 								SprintSpeed = DiagonalSprintSpeed;
 								SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+								SetCharacterMovementSpeed(SprintSpeed);
 							}
 							else
 							{
 								SprintSpeed = DefaultSprintSpeed;
 								SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+								if (GetCharacterMovementSpeed() < DefaultSprintSpeed)
+								{
+									//SetCharacterMovementSpeed(SprintSpeed);
+									SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), SprintSpeed, 0.5));
+								}
+								else if (GetCharacterMovementSpeed() > DefaultSprintSpeed)
+								{
+									SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), SprintSpeed, 0.3));
+								}
+								else
+								{
+									
+								}
+
 							}
 						}
 						//...and player is moving forward and not sprinting...
@@ -276,6 +288,15 @@ void ASRCharacter::MoveForward(float value)
 						{
 							//...then player is jogging
 							SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+
+							if(GetCharacterMovementSpeed() <= JogSpeed)
+							{
+								SetCharacterMovementSpeed(JogSpeed);
+							}
+							else
+							{
+								SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), JogSpeed, 0.3));
+							}
 						}
 					}	
 				}
@@ -346,7 +367,7 @@ void ASRCharacter::MoveRight(float value)
 
 			if(!bIsMovingForward)
 			{
-				SetCharacterMovementSpeed(JogSpeed);
+				//SetCharacterMovementSpeed(JogSpeed);
 			}
 			if (StanceStatus == EStanceStatus::Ess_Standing)
 			{
@@ -813,11 +834,11 @@ void ASRCharacter::SlideSlopeDetection()
 			float Startpoint = SlopeAngleTraceHit.ImpactPoint.Z;
 			float EndPoint = UpDownHillTraceHit.ImpactPoint.Z;
 			float PointDifference = Startpoint - EndPoint;
-			if(PointDifference < 0)
+			if(PointDifference < -0.4F)
 			{
 				EndSlide();
 			}
-			//UE_LOG(LogTemp, Warning, TEXT("%f"), PointDifference);
+			UE_LOG(LogTemp, Warning, TEXT("%f"), PointDifference);
 		}
 		else
 		{
@@ -837,7 +858,7 @@ void ASRCharacter::SlideSpeedCalculation()
 		{
 			if(GetCharacterMovementSpeed() > 1650)
 			{
-				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.9895f);
+				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.985f);
 			}
 			else
 			{
@@ -924,12 +945,12 @@ void ASRCharacter::SetStandingMovementStatus(EStandingMovementStatus Status)
 	{
 		if (bIsMovingRight)
 		{
-			SetCharacterMovementSpeed(DiagonalSprintSpeed);
+			//SetCharacterMovementSpeed(DiagonalSprintSpeed);
 			//GetCharacterMovement()->MaxWalkSpeed = DiagonalSprintSpeed;
 		}
 		else
 		{
-			SetCharacterMovementSpeed(SprintSpeed);
+			//SetCharacterMovementSpeed(SprintSpeed);
 			//GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 		}
 
@@ -949,7 +970,7 @@ void ASRCharacter::SetCrouchingMovementStatus(ECrouchingMovementStatus Status)
 {
 	//Set Crouching movement status to the input status
 	CrouchingMovementStatus = Status;
-	SetCharacterMovementSpeed(CrouchSpeed);
+	//SetCharacterMovementSpeed(CrouchSpeed);
 	if (CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Idling)
 	{
 

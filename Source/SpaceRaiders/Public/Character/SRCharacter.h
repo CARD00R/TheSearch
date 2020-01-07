@@ -206,12 +206,17 @@ protected:
 	void EndSlide();
 	void SlideSlopeDetection();
 	void SlideSpeedCalculation();
-	float SlideSpeed = 1000.0f;
+	float SlideSpeed = 1450.0f;
 	float SlideDuration = 1.5f;
 	float SlideTraceLength = 1500.0f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool SlideCheck = false;
 	FTimerHandle TimerSlideDuration;
 	FTimerHandle TimerSlopeDetection;
+	float SlowSpeedGain = 1.003f;
+	float FastSpeedGain = 1.01f;
+	float SlowSpeedLoss = 0.985f;
+	float FastSpeedLoss = 0.970f;
 
 
 	// FreeLook

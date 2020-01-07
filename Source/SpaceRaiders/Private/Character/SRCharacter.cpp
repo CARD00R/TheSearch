@@ -404,8 +404,16 @@ void ASRCharacter::Turn(float value)
 {
 	if (bGlobalMouseInput)
 	{
-
+		
 		float valueMultiplier = 1.0f;
+		if(StanceStatus !=EStanceStatus::Ess_Sliding)
+		{
+			valueMultiplier = 1.0f;
+		}
+		else
+		{
+			valueMultiplier = 0.25f;
+		}
 		AddControllerYawInput(value*valueMultiplier);
 	}
 }
@@ -517,7 +525,7 @@ void ASRCharacter::CrouchSlideCheckPressed()
 		if (bIsMovingForward)
 		{
 			SlideCheck = true;
-			//SlideRequest = true;
+			SlideRequest = true;
 		}
 
 	}
@@ -781,7 +789,7 @@ void ASRCharacter::SlideSlopeDetection()
 	{
 		//Hit
 		DrawDebugLine(GetWorld(), SlopeAngleTraceStart, SlopeAngleTraceEnd, FColor::Green,false,3,0,1);
-		
+		//UE_LOG(LogTemp, Warning, TEXT("%f"), SlopeAngleTraceHit.ImpactNormal.Z);
 		if(SlopeAngleTraceHit.ImpactNormal.Z >= 1.0f)
 		{
 			SetSlideStatus(ESlideStatus::Eias_FlatSlope);
@@ -790,36 +798,12 @@ void ASRCharacter::SlideSlopeDetection()
 		{
 			SetSlideStatus(ESlideStatus::Eias_SlantedSlope);
 			SlideRequest = true;
-		}
+		}	
 		else
 		{
 			SetSlideStatus(ESlideStatus::Eias_SteepSlope);
 			SlideRequest = true;
 		}
-
-		/*FHitResult UpDownHillTraceHit;
-		FVector ForwardVector = CameraComp->GetForwardVector();
-		FVector UpDownHillStartTrace = FVector(SlopeAngleTraceHit.Location.X, SlopeAngleTraceHit.Location.Y, SlopeAngleTraceHit.Location.Z + 90);
-		FVector UpDownHillEndTrace = (ForwardVector * 600.0f) + UpDownHillStartTrace;
-
-		DrawDebugLine(GetWorld(), UpDownHillStartTrace, UpDownHillEndTrace, FColor::Red, false, 3, 0, 2);
-
-		GetWorld()->LineTraceSingleByChannel(UpDownHillTraceHit, UpDownHillStartTrace, UpDownHillEndTrace, ECC_Visibility, QueryParams);
-
-		if()
-		{
-			float Startpoint = UpDownHillStartTrace.Z;
-			float EndPoint = UpDownHillTraceHit.ImpactPoint.Z;
-			float PointDifference = Startpoint - EndPoint;
-			UE_LOG(LogTemp, Warning, TEXT("%f"), PointDifference);
-		}
-		else
-		{
-			float Startpoint = UpDownHillStartTrace.Z;
-			float EndPoint = UpDownHillEndTrace.Z;
-			float PointDifference = Startpoint - EndPoint;
-			UE_LOG(LogTemp, Warning, TEXT("%f"), PointDifference);
-		}*/
 		
 		FHitResult UpDownHillTraceHit;
 		FVector ForwardVector = CameraComp->GetUpVector();
@@ -834,7 +818,7 @@ void ASRCharacter::SlideSlopeDetection()
 			float Startpoint = SlopeAngleTraceHit.ImpactPoint.Z;
 			float EndPoint = UpDownHillTraceHit.ImpactPoint.Z;
 			float PointDifference = Startpoint - EndPoint;
-			if(PointDifference < -0.4F)
+			if(PointDifference < -0.15f)
 			{
 				EndSlide();
 			}
@@ -858,11 +842,11 @@ void ASRCharacter::SlideSpeedCalculation()
 		{
 			if(GetCharacterMovementSpeed() > 1650)
 			{
-				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.985f);
+				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*FastSpeedLoss);
 			}
 			else
 			{
-				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.995f);
+				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*SlowSpeedLoss);
 			}
 
 		}
@@ -873,11 +857,11 @@ void ASRCharacter::SlideSpeedCalculation()
 	}
 	else if (SlideStatus == ESlideStatus::Eias_SlantedSlope)
 	{
-		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*1.005f);
+		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*SlowSpeedGain);
 	}
 	else if(SlideStatus == ESlideStatus::Eias_SteepSlope)
 	{
-		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*1.01f);
+		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*FastSpeedGain);
 	}
 	else
 	{

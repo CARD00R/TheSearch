@@ -102,7 +102,7 @@ void USRCharacterAnimInstance::DetermineVerticalVelocityProperties()
 	else
 	{
 		Character->bCheckCapsuleProperties = true;
-		
+		Character->SetStanceStatus(EStanceStatus::Ess_InAir);
 		if(FallHeight > FallHeightFlailLimit)
 		{
 			Character->SetInAirStatus(EInAirStatus::Eias_Flailing);		

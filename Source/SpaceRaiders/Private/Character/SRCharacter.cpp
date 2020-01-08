@@ -629,14 +629,15 @@ bool ASRCharacter::GetIsArmed()
 
 bool ASRCharacter::GetShouldHardLand()
 {
-	if(bShouldHardLand)
+	return bShouldHardLand;
+	/*if(bShouldHardLand)
 	{
 		return true;
 	}
 	else
 	{
 		return false;
-	}
+	}*/
 }
 
 void ASRCharacter::SetCharacterMovementSpeed(float MoveSpeed)

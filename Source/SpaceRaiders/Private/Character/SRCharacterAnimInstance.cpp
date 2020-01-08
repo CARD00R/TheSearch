@@ -7,7 +7,6 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "public/Character/SRCharacter.h"
 #include "TimerManager.h"
-#include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
 
 void USRCharacterAnimInstance::NativeInitializeAnimation()
@@ -18,7 +17,7 @@ void USRCharacterAnimInstance::NativeInitializeAnimation()
 	}	
 }
 
-void USRCharacterAnimInstance::UpdateAnimationProperties()
+void USRCharacterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 {
 	if(Pawn)
 	{
@@ -43,6 +42,7 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 
 		// Casting to SRCharacter in order to obtain the Movement Status Enum inside ASR Character
 		Character = Cast<ASRCharacter>(Pawn);
+
 		// If character exists...		
 		if(Character != nullptr)
 		{
@@ -61,6 +61,7 @@ void USRCharacterAnimInstance::UpdateAnimationProperties()
 			Character->FallHeight = FallHeight;
 			SlideRequest = Character->SlideRequest;
 			
+			CalculateYawPitch(DeltaTime);
 			DetermineVerticalVelocityProperties();
 		}
 		else
@@ -116,6 +117,19 @@ void USRCharacterAnimInstance::DetermineVerticalVelocityProperties()
 
 		FallHeight = FallHeightStartingZ - StoredZLocation;
 	}
+}
+
+void USRCharacterAnimInstance::CalculateYawPitch(float DeltaTime)
+{
+	//Current Rotation
+	FRotator Current = FRotator(Pitch, Yaw, 0);
+	//The Difference between the control rotation(mouse) and the actor rotation
+	FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(Character->GetControlRotation(), Character->GetActorRotation());
+	// Constantly reseting the value of the return so it can keep up with mouse movement
+	FRotator Return = UKismetMathLibrary::RInterpTo(Current, Delta, DeltaTime, 50);
+	// clamping values to prevent unwanted rotation
+	Pitch = FMath::ClampAngle(Return.Pitch, -90, 90);
+	Yaw = FMath::ClampAngle(Return.Yaw, -90, 90);
 }
 
 void USRCharacterAnimInstance::ResetFallHeight()

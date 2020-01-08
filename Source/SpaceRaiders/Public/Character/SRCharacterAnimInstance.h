@@ -22,29 +22,29 @@ class SPACERAIDERS_API USRCharacterAnimInstance : public UAnimInstance
 
 public:
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
 	EStanceStatus StanceStatus;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
 	EInAirStatus InAirStatus;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
 	EStandingMovementStatus StandingMovementStatus;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
 	ECrouchingMovementStatus CrouchingMovementStatus;
 protected:
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
 	float Direction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
 	float MovementSpeed;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
 	float MovementSpeedX;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
 	float MovementSpeedY;
 	
 	# pragma region Falling Properties
@@ -68,6 +68,10 @@ protected:
 
 	bool bShouldResetFallHeight = false;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Aiming Properties")
+	float Pitch;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Aiming Properties")
+	float Yaw;
 	#pragma endregion
 
 	//Timers
@@ -84,7 +88,7 @@ protected:
 	ASRCharacter* Character;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Proprties")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
 	bool bIsArmed;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
@@ -93,11 +97,11 @@ protected:
 	
 
 	UFUNCTION(BlueprintCallable, Category = "Animation Properties")
-	void UpdateAnimationProperties();
+	void UpdateAnimationProperties(float DeltaTime);
 
 	void DetermineVerticalVelocityProperties();
 
-	
+	void CalculateYawPitch(float DeltaTime);
 public:
 
 	virtual void NativeInitializeAnimation() override;

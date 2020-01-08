@@ -238,7 +238,7 @@ protected:
 		
 	//Weapons
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")
-	bool bIsArmed = false;
+	bool bIsArmed = true;
 
 	//Input
 	void GlobalKeysInputDisable();

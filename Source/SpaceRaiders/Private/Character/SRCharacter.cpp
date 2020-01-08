@@ -227,6 +227,7 @@ void ASRCharacter::MoveForward(float value)
 		{
 			//...then player is moving forward
 			bIsMovingForward = true;
+
 			//...and player is standing...
 			if (StanceStatus == EStanceStatus::Ess_Standing)
 			{
@@ -312,6 +313,7 @@ void ASRCharacter::MoveForward(float value)
 		{
 			//...then player is not moving forward
 			bIsMovingForward = false;
+
 			if(StanceStatus == EStanceStatus::Ess_Sliding)
 			{
 				EndSlide();
@@ -396,7 +398,24 @@ void ASRCharacter::LookUp(float value)
 {
 	if(bGlobalMouseInput)
 	{
-		AddControllerPitchInput(value);
+		if(Pitch != 60 && Pitch != -60)
+		{
+			AddControllerPitchInput(value);
+		}
+		else if (Pitch != 60)
+		{
+			if (value < 0)
+			{
+				AddControllerPitchInput(value);
+			}
+		}
+		else if(Pitch != -60)
+		{
+			if (value > 0)
+			{
+				AddControllerPitchInput(value);
+			}
+		}
 	}
 }
 
@@ -406,6 +425,7 @@ void ASRCharacter::Turn(float value)
 	{
 		
 		float valueMultiplier = 1.0f;
+
 		if(StanceStatus !=EStanceStatus::Ess_Sliding)
 		{
 			valueMultiplier = 1.0f;
@@ -413,6 +433,28 @@ void ASRCharacter::Turn(float value)
 		else
 		{
 			valueMultiplier = 0.25f;
+		}
+
+		if (Yaw <= 20 && Yaw >= -20)
+		{
+			bUseControllerRotationYaw = false;
+				
+		}
+		else if (Yaw >= 60)
+		{
+			bUseControllerRotationYaw = true;
+			if (value < 0)
+			{
+
+			}
+		}
+		else if (Yaw <= -60)
+		{
+			bUseControllerRotationYaw = true;
+			if (value > 0)
+			{
+
+			}
 		}
 		AddControllerYawInput(value*valueMultiplier);
 	}

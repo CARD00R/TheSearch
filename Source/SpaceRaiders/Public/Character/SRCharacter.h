@@ -151,6 +151,11 @@ public:
 	// Sliding
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool SlideRequest = false;
+
+	// Aiming
+	float Pitch;
+	float Yaw;
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

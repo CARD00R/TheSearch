@@ -126,10 +126,13 @@ void USRCharacterAnimInstance::CalculateYawPitch(float DeltaTime)
 	//The Difference between the control rotation(mouse) and the actor rotation
 	FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(Character->GetControlRotation(), Character->GetActorRotation());
 	// Constantly reseting the value of the return so it can keep up with mouse movement
-	FRotator Return = UKismetMathLibrary::RInterpTo(Current, Delta, DeltaTime, 50);
-	// clamping values to prevent unwanted rotation
-	Pitch = FMath::ClampAngle(Return.Pitch, -90, 90);
-	Yaw = FMath::ClampAngle(Return.Yaw, -90, 90);
+	FRotator Return = UKismetMathLibrary::RInterpTo(Current, Delta, DeltaTime, 60);
+	// Clamping values to prevent unwanted rotation
+	Pitch = FMath::ClampAngle(Return.Pitch, -60, 60);
+	Yaw = FMath::ClampAngle(Return.Yaw, -60, 60);
+	// Setting character yaw/pitch
+	Character->Pitch = Pitch;
+	Character->Yaw = Yaw;
 }
 
 void USRCharacterAnimInstance::ResetFallHeight()

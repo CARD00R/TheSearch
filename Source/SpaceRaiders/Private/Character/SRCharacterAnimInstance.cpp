@@ -56,7 +56,8 @@ void USRCharacterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 			
 			CrouchingMovementStatus = Character->GetCrouchingMovementStatus();
 			
-			bIsArmed = Character->GetIsArmed();
+			bGunHolstered = Character->GetGunHolstered();
+			bIsADSing = Character->GetIsADSing();
 			bShouldHardLand = Character->GetShouldHardLand();
 			Character->FallHeight = FallHeight;
 			SlideRequest = Character->SlideRequest;

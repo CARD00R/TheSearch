@@ -138,7 +138,8 @@ public:
 	EInAirStatus GetInAirStatus();
 
 	void SetInAirStatus(EInAirStatus Status);
-	bool GetIsArmed();
+	bool GetGunHolstered();
+	bool GetIsADSing();
 	bool GetShouldHardLand();
 	//Capsule
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
@@ -243,7 +244,13 @@ protected:
 		
 	//Weapons
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")
-	bool bIsArmed = true;
+	bool bGunHolstered = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")
+	bool bIsADSing = false;
+	void AimPressed();
+	void AimToggle();
+	void AimReleased ();
+	void EquipPrimaryWeapon();
 
 	//Input
 	void GlobalKeysInputDisable();

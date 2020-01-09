@@ -109,7 +109,9 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASRCharacter::StartSprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASRCharacter::SprintReleased);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASRCharacter::StartJump);
-
+	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ASRCharacter::AimPressed);
+	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ASRCharacter::AimReleased);
+	PlayerInputComponent->BindAction("PrimaryWeapon", IE_Pressed, this, &ASRCharacter::EquipPrimaryWeapon);
 }
 
 void ASRCharacter::Landed(const FHitResult & Hit)
@@ -434,7 +436,7 @@ void ASRCharacter::Turn(float value)
 		{
 			valueMultiplier = 0.25f;
 		}
-
+		/*
 		if (Yaw <= 20 && Yaw >= -20)
 		{
 			bUseControllerRotationYaw = false;
@@ -455,7 +457,7 @@ void ASRCharacter::Turn(float value)
 			{
 
 			}
-		}
+		}*/
 		AddControllerYawInput(value*valueMultiplier);
 	}
 }
@@ -601,6 +603,34 @@ void ASRCharacter::CrouchSlideCheckReleased()
 	SlideCheck = false;
 }
 
+void ASRCharacter::AimPressed()
+{
+	if (bGunHolstered == false)
+	{
+		AimToggle();
+	}
+	UE_LOG(LogTemp, Warning, TEXT("AIMING"));
+}
+
+void ASRCharacter::AimToggle()
+{
+	bIsADSing = !bIsADSing;
+}
+
+void ASRCharacter::AimReleased()
+{
+	if (bGunHolstered == false)
+	{
+		AimToggle();
+	}
+	UE_LOG(LogTemp, Warning, TEXT("not AIMING"));
+}
+
+void ASRCharacter::EquipPrimaryWeapon()
+{
+	bGunHolstered = !bGunHolstered;
+}
+
 void ASRCharacter::GlobalKeysInputDisable()
 {
 	bGlobalKeysInput = false;
@@ -664,9 +694,14 @@ void ASRCharacter::EndCrouch()
 	bCheckCapsuleProperties = true;
 }
 
-bool ASRCharacter::GetIsArmed()
+bool ASRCharacter::GetGunHolstered()
 {
-	return bIsArmed;
+	return bGunHolstered;
+}
+
+bool ASRCharacter::GetIsADSing()
+{
+	return bIsADSing;
 }
 
 bool ASRCharacter::GetShouldHardLand()

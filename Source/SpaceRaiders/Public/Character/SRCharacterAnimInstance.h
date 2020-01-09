@@ -89,7 +89,9 @@ protected:
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
-	bool bIsArmed;
+	bool bGunHolstered;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
+	bool bIsADSing;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool SlideRequest;

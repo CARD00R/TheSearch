@@ -56,13 +56,22 @@ enum class EInAirStatus : uint8
 UENUM(BlueprintType)
 enum class ESlideStatus : uint8
 {
-	Eias_FlatSlope UMETA(DisplayName = "FlatSlope"),
-	Eias_SlantedSlope UMETA(DisplayName = "SlantedSlope"),
-	Eias_SteepSlope UMETA(DisplayName = "SteepSlope"),
-	Eias_NoSlope UMETA(DisplayName = "NoSlope"),
-	Eias_MAX UMETA(DisplayName = "DefaultMax"),
+	Ess_FlatSlope UMETA(DisplayName = "FlatSlope"),
+	Ess_SlantedSlope UMETA(DisplayName = "SlantedSlope"),
+	Ess_SteepSlope UMETA(DisplayName = "SteepSlope"),
+	Ess_NoSlope UMETA(DisplayName = "NoSlope"),
+	Ess_MAX UMETA(DisplayName = "DefaultMax"),
 };
 
+UENUM(BlueprintType)
+enum class EGunStatus : uint8
+{
+	Egs_ADSing UMETA(DisplayName = "ADSing"),
+	Egs_Reloading UMETA(DisplayName = "Reloading"),
+	Egs_SteepSlope UMETA(DisplayName = "SteepSlope"),
+	Egs_Nis UMETA(DisplayName = "NIS"),
+	Egs_MAX UMETA(DisplayName = "DefaultMax"),
+};
 
 UCLASS()
 class SPACERAIDERS_API ASRCharacter : public ACharacter

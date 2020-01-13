@@ -122,7 +122,7 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 	{
 		if(SlideRequest)
 		{
-			if(SlideStatus != ESlideStatus::Eias_FlatSlope || GetCharacterMovementSpeed() > 1650)
+			if(SlideStatus != ESlideStatus::Ess_FlatSlope || GetCharacterMovementSpeed() > 1650)
 			{
 				SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
 				SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
@@ -187,11 +187,12 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 		}
 		else
 		{
-			if(SlideStatus != ESlideStatus::Eias_FlatSlope)
+			if(SlideStatus != ESlideStatus::Ess_FlatSlope)
 			{
+				StartSlide();
 				SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
 				SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
-				StartSlide(); 
+				
 			}
 			else
 			{
@@ -232,7 +233,7 @@ void ASRCharacter::MoveForward(float value)
 
 			//...and player is standing...
 			if (StanceStatus == EStanceStatus::Ess_Standing)
-			{
+			{	
 				// and Player is just pressing S...
 				if (value < 0)
 				{
@@ -670,19 +671,20 @@ void ASRCharacter::BeginCrouch()
 {
 	if(!bJustPressedSprint)
 	{
-		SetStanceStatus(EStanceStatus::Ess_Crouching);
-		SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
-		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Idling);
-		GetMesh()->SetRelativeLocation(FVector(0, 0, -63));
-		bCheckCapsuleProperties = true;
-		SetCharacterMovementSpeed(CrouchSpeed);
-		
+		if(GetCharacterMovementSpeed() < 800)
+		{
+			SetStanceStatus(EStanceStatus::Ess_Crouching);
+			SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
+			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Idling);
+			GetMesh()->SetRelativeLocation(FVector(0, 0, -63));
+			bCheckCapsuleProperties = true;
+			SetCharacterMovementSpeed(CrouchSpeed);
+		}		
 	}
 	else
 	{
 		//StartSlide();
-	}
-	
+	}	
 }
 
 void ASRCharacter::EndCrouch()
@@ -729,25 +731,31 @@ float ASRCharacter::GetCharacterMovementSpeed()
 
 void ASRCharacter::StartSprint()
 {
-	if(GetWorld()->GetTimerManager().IsTimerActive(TimerEndSprint))
+	// a delay when letting go of sprint to be able to get into sliding state
+	if (GetWorld()->GetTimerManager().IsTimerActive(TimerEndSprint))
 	{
 		GetWorld()->GetTimerManager().ClearTimer(TimerEndSprint);
 	}
-	//GetWorld()->GetTimerManager().SetTimer(TimerEndSprint, this, &ASRCharacter::JustPressedSprint, EndSprintDelay, false);
-	
-	if(StanceStatus == EStanceStatus::Ess_Standing)
+	if(GetStanceStatus()==EStanceStatus::Ess_Crouching)
+	{
+		SlideRequest = false;
+		bCheckCapsuleProperties = true;
+		EndCrouch();
+	}
+	if(GetStanceStatus() ==EStanceStatus::Ess_Sliding)
+	{
+		EndSlide();
+	}
+
+	if (StanceStatus == EStanceStatus::Ess_Standing)
 	{
 		bJustPressedSprint = true;
 	}
-	
-	if(StanceStatus == EStanceStatus::Ess_Crouching)
-	{
-		EndCrouch();
-	}
-	
+
 	SetStanceStatus(EStanceStatus::Ess_Standing);
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
 	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+	
 }
 
 void ASRCharacter::SprintReleased()
@@ -817,10 +825,12 @@ void ASRCharacter::StartSlide()
 }
 
 void ASRCharacter::EndSlide()
-{	
+{
+	SetStanceStatus(EStanceStatus::Ess_Standing);
+	UE_LOG(LogTemp, Warning, TEXT("END SLIDE"));
 	if(!SlideRequest)
 	{
-		SetStanceStatus(EStanceStatus::Ess_Standing);
+
 		GetMesh()->SetRelativeLocation(FVector(-5, 0, -88));
 		if ((bIsMovingForward || bIsMovingRight))
 		{
@@ -849,7 +859,7 @@ void ASRCharacter::EndSlide()
 	}
 
 	bCheckCapsuleProperties = true;
-	//SlideRequest = false;
+	SlideRequest = false;
 }
 
 void ASRCharacter::SlideSlopeDetection()
@@ -870,17 +880,17 @@ void ASRCharacter::SlideSlopeDetection()
 		//UE_LOG(LogTemp, Warning, TEXT("%f"), SlopeAngleTraceHit.ImpactNormal.Z);
 		if(SlopeAngleTraceHit.ImpactNormal.Z >= 1.0f)
 		{
-			SetSlideStatus(ESlideStatus::Eias_FlatSlope);
+			SetSlideStatus(ESlideStatus::Ess_FlatSlope);
 		}
 		else if(SlopeAngleTraceHit.ImpactNormal.Z < 1.0f && SlopeAngleTraceHit.ImpactNormal.Z >= 0.9f)
 		{
-			SetSlideStatus(ESlideStatus::Eias_SlantedSlope);
-			SlideRequest = true;
+			SetSlideStatus(ESlideStatus::Ess_SlantedSlope);
+			//SlideRequest = true;
 		}	
 		else
 		{
-			SetSlideStatus(ESlideStatus::Eias_SteepSlope);
-			SlideRequest = true;
+			SetSlideStatus(ESlideStatus::Ess_SteepSlope);
+			//SlideRequest = true;
 		}
 		
 		FHitResult UpDownHillTraceHit;
@@ -908,13 +918,13 @@ void ASRCharacter::SlideSlopeDetection()
 	}
 	else
 	{
-		SetSlideStatus(ESlideStatus::Eias_NoSlope);
+		SetSlideStatus(ESlideStatus::Ess_NoSlope);
 	}
 }
 
 void ASRCharacter::SlideSpeedCalculation()
 {
-	if (SlideStatus == ESlideStatus::Eias_FlatSlope)
+	if (SlideStatus == ESlideStatus::Ess_FlatSlope)
 	{
 		if(GetCharacterMovementSpeed() > 850)
 		{
@@ -933,17 +943,17 @@ void ASRCharacter::SlideSpeedCalculation()
 			EndSlide();
 		}	
 	}
-	else if (SlideStatus == ESlideStatus::Eias_SlantedSlope)
+	else if (SlideStatus == ESlideStatus::Ess_SlantedSlope)
 	{
 		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*SlowSpeedGain);
 	}
-	else if(SlideStatus == ESlideStatus::Eias_SteepSlope)
+	else if(SlideStatus == ESlideStatus::Ess_SteepSlope)
 	{
 		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*FastSpeedGain);
 	}
 	else
 	{
-		SetSlideStatus(ESlideStatus::Eias_FlatSlope);
+		SetSlideStatus(ESlideStatus::Ess_FlatSlope);
 	}
 }
 
@@ -977,6 +987,7 @@ void ASRCharacter::SetStanceStatus(EStanceStatus Status)
 	else if(StanceStatus == EStanceStatus::Ess_Sliding)
 	{
 		GetMesh()->SetRelativeLocation(FVector(0, -25, -25));
+		
 		if(GetCharacterMovementSpeed()<SlideSpeed)
 		{
 			SetCharacterMovementSpeed(SlideSpeed);
@@ -1032,7 +1043,8 @@ void ASRCharacter::SetCrouchingMovementStatus(ECrouchingMovementStatus Status)
 {
 	//Set Crouching movement status to the input status
 	CrouchingMovementStatus = Status;
-	//SetCharacterMovementSpeed(CrouchSpeed);
+	//SetCharacterMovementSpeed(
+
 	if (CrouchingMovementStatus == ECrouchingMovementStatus::Ecms_Idling)
 	{
 

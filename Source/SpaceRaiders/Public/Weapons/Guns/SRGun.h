@@ -7,6 +7,8 @@
 #include "SRGun.generated.h"
 
 class USkeletalMeshComponent;
+class UDamageType;
+class UParticleSystem;
 
 UCLASS()
 class SPACERAIDERS_API ASRGun : public AActor
@@ -26,8 +28,27 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void Fire();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Weapon")
+	TSubclassOf<UDamageType> DamageType;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	FName MuzzleSocketName;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* MuzzleEffect;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* ImpactEffect;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* TracerEffect;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	FName TracerTargetName;
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	
 };

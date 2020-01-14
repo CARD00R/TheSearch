@@ -33,6 +33,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
 	ECrouchingMovementStatus CrouchingMovementStatus;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
+	EGunStatus GunStatus;
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
@@ -90,8 +93,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
 	bool bGunHolstered;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
-	bool bIsADSing;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool SlideRequest;

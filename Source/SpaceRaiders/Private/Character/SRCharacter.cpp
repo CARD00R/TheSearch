@@ -218,6 +218,16 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 	SetInAirStatus(EInAirStatus::Eias_Nis);
 }
 
+FVector ASRCharacter::GetPawnViewLocation() const
+{
+	if (CameraComp)
+	{
+		return CameraComp->GetComponentLocation();
+	}
+	
+	return Super::GetPawnViewLocation();
+}
+
 void ASRCharacter::MoveForward(float value)
 {
 	
@@ -257,49 +267,57 @@ void ASRCharacter::MoveForward(float value)
 				{
 					if(!SlideRequest)
 					{
-						//GetCharacterMovement()->MaxWalkSpeed = JogSpeed;
-						//...and player is moving forward and sprinting...
-						if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
+						//...and player is ADSing...
+						if(GunStatus == EGunStatus::Egs_ADSing)
 						{
-							if (bIsMovingRight)
+							//...Set Speed to walkspeed
+							SetCharacterMovementSpeed(WalkSpeed);
+						}
+						else
+						{
+							//...and player is moving forward and sprinting...
+							if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
 							{
-								SprintSpeed = DiagonalSprintSpeed;
-								SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
-								SetCharacterMovementSpeed(SprintSpeed);
-							}
-							else
-							{
-								SprintSpeed = DefaultSprintSpeed;
-								SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
-								if (GetCharacterMovementSpeed() < DefaultSprintSpeed)
+								if (bIsMovingRight)
 								{
-									//SetCharacterMovementSpeed(SprintSpeed);
-									SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), SprintSpeed, 0.5));
-								}
-								else if (GetCharacterMovementSpeed() > DefaultSprintSpeed)
-								{
-									SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), SprintSpeed, 0.3));
+									SprintSpeed = DiagonalSprintSpeed;
+									SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+									SetCharacterMovementSpeed(SprintSpeed);
 								}
 								else
 								{
-									
+									SprintSpeed = DefaultSprintSpeed;
+									SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+									if (GetCharacterMovementSpeed() < DefaultSprintSpeed)
+									{
+										//SetCharacterMovementSpeed(SprintSpeed);
+										SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), SprintSpeed, 0.5));
+									}
+									else if (GetCharacterMovementSpeed() > DefaultSprintSpeed)
+									{
+										SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), SprintSpeed, 0.3));
+									}
+									else
+									{
+
+									}
+
 								}
-
 							}
-						}
-						//...and player is moving forward and not sprinting...
-						else
-						{
-							//...then player is jogging
-							SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
-
-							if(GetCharacterMovementSpeed() <= JogSpeed)
-							{
-								SetCharacterMovementSpeed(JogSpeed);
-							}
+							//...and player is moving forward and not sprinting...
 							else
 							{
-								SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), JogSpeed, 0.3));
+								//...then player is jogging
+								SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+
+								if (GetCharacterMovementSpeed() <= JogSpeed)
+								{
+									SetCharacterMovementSpeed(JogSpeed);
+								}
+								else
+								{
+									SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), JogSpeed, 0.3));
+								}
 							}
 						}
 					}	
@@ -364,28 +382,33 @@ void ASRCharacter::MoveRight(float value)
 	{
 		AddMovementInput(GetActorRightVector()* value);
 		
-		//If player is pressing S/D...
+		//If player is pressing A/D...
 		if (value != 0)
 		{
 			//...then player is moving right
 			bIsMovingRight = true;
 
-			if(!bIsMovingForward)
+			//...and player is ADSing...
+			if (GunStatus == EGunStatus::Egs_ADSing)
 			{
-				//SetCharacterMovementSpeed(JogSpeed);
+				//...Set Speed to walkspeed
+				SetCharacterMovementSpeed(WalkSpeed);
 			}
-			if (StanceStatus == EStanceStatus::Ess_Standing)
+			else
 			{
-				//...if player moving right and not sprinting...
-				if (StandingMovementStatus != EStandingMovementStatus::Esms_Sprinting)
+				if (StanceStatus == EStanceStatus::Ess_Standing)
 				{
-					//...then the player is jogging
-					SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+					//...if player moving right and not sprinting...
+					if (StandingMovementStatus != EStandingMovementStatus::Esms_Sprinting)
+					{
+						//...then the player is jogging
+						SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+					}
 				}
-			}
-			else if (StanceStatus == EStanceStatus::Ess_Crouching)
-			{
-				SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Walking);
+				else if (StanceStatus == EStanceStatus::Ess_Crouching)
+				{
+					SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Walking);
+				}
 			}
 		}
 		//If player is not pressing S/D
@@ -608,23 +631,29 @@ void ASRCharacter::AimPressed()
 {
 	if (bGunHolstered == false)
 	{
-		AimToggle();
-	}
-	UE_LOG(LogTemp, Warning, TEXT("AIMING"));
-}
 
-void ASRCharacter::AimToggle()
-{
-	bIsADSing = !bIsADSing;
+		SetGunStatus(EGunStatus::Egs_ADSing);
+		if(StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
+		{
+			SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+		}
+		if(StanceStatus == EStanceStatus::Ess_Sliding)
+		{
+			EndSlide();
+		}
+		
+		UE_LOG(LogTemp, Warning, TEXT("AIMING"));
+	}
 }
 
 void ASRCharacter::AimReleased()
 {
 	if (bGunHolstered == false)
 	{
-		AimToggle();
+
+		SetGunStatus(EGunStatus::Egs_Nis);
+		UE_LOG(LogTemp, Warning, TEXT("not AIMING"));
 	}
-	UE_LOG(LogTemp, Warning, TEXT("not AIMING"));
 }
 
 void ASRCharacter::EquipPrimaryWeapon()
@@ -701,10 +730,6 @@ bool ASRCharacter::GetGunHolstered()
 	return bGunHolstered;
 }
 
-bool ASRCharacter::GetIsADSing()
-{
-	return bIsADSing;
-}
 
 bool ASRCharacter::GetShouldHardLand()
 {
@@ -1000,6 +1025,11 @@ void ASRCharacter::SetSlideStatus(ESlideStatus Status)
 	SlideStatus = Status;
 }
 
+void ASRCharacter::SetGunStatus(EGunStatus Status)
+{
+	GunStatus = Status;
+}
+
 EStanceStatus ASRCharacter::GetStanceStatus()
 {
 	return StanceStatus;
@@ -1068,6 +1098,11 @@ void ASRCharacter::SetInAirStatus(EInAirStatus Status)
 EInAirStatus ASRCharacter::GetInAirStatus()
 {
 	return InAirStatus;
+}
+
+EGunStatus ASRCharacter::GetGunStatus()
+{
+	return GunStatus; 
 }
 
 

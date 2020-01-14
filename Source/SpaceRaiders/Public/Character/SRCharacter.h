@@ -68,7 +68,6 @@ enum class EGunStatus : uint8
 {
 	Egs_ADSing UMETA(DisplayName = "ADSing"),
 	Egs_Reloading UMETA(DisplayName = "Reloading"),
-	Egs_SteepSlope UMETA(DisplayName = "SteepSlope"),
 	Egs_Nis UMETA(DisplayName = "NIS"),
 	Egs_MAX UMETA(DisplayName = "DefaultMax"),
 };
@@ -140,15 +139,18 @@ public:
 	ESlideStatus SlideStatus;
 	void SetSlideStatus(ESlideStatus Status);
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+	EGunStatus GunStatus;
+	void SetGunStatus(EGunStatus Status);
 
 	EStanceStatus GetStanceStatus();
 	EStandingMovementStatus GetStandingMovementStatus();
 	ECrouchingMovementStatus GetCrouchingMovementStatus();
 	EInAirStatus GetInAirStatus();
+	EGunStatus GetGunStatus();
 
 	void SetInAirStatus(EInAirStatus Status);
 	bool GetGunHolstered();
-	bool GetIsADSing();
 	bool GetShouldHardLand();
 	//Capsule
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
@@ -198,6 +200,7 @@ protected:
 	float SprintSpeed = DefaultSprintSpeed;
 	float DefaultSprintSpeed = 900.0f;
 	float CrouchSpeed = 300.0f;
+	float WalkSpeed = 450;
 	void SetCharacterMovementSpeed(float MoveSpeed);
 	float GetCharacterMovementSpeed();
 
@@ -254,11 +257,10 @@ protected:
 	//Weapons
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")
 	bool bGunHolstered = false;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")
-	bool bIsADSing = false;
+
+
 	void AimPressed();
-	void AimToggle();
-	void AimReleased ();
+	void AimReleased();
 	void EquipPrimaryWeapon();
 
 	//Input
@@ -274,5 +276,5 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Landed(const FHitResult& Hit) override;
-
+	virtual FVector GetPawnViewLocation() const override;
 };

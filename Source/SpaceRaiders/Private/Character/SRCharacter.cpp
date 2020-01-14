@@ -90,6 +90,10 @@ void ASRCharacter::Tick(float DeltaTime)
 	{
 		CheckCapsuleHeightRadius();
 	}
+	if(bChangeFOV)
+	{
+		SetCameraFOV(DeltaTime);
+	}
 }
 
 // Called to bind functionality to input
@@ -633,6 +637,7 @@ void ASRCharacter::AimPressed()
 	{
 
 		SetGunStatus(EGunStatus::Egs_ADSing);
+		bChangeFOV = true;
 		if(StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
 		{
 			SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
@@ -652,6 +657,7 @@ void ASRCharacter::AimReleased()
 	{
 
 		SetGunStatus(EGunStatus::Egs_Nis);
+		bChangeFOV = true;
 		UE_LOG(LogTemp, Warning, TEXT("not AIMING"));
 	}
 }
@@ -659,6 +665,38 @@ void ASRCharacter::AimReleased()
 void ASRCharacter::EquipPrimaryWeapon()
 {
 	bGunHolstered = !bGunHolstered;
+}
+
+void ASRCharacter::SetCameraFOV(float DeltaTime)
+{
+	float CurrentFov = CameraComp->FieldOfView;
+	float Target;
+	
+	if(GunStatus == EGunStatus::Egs_ADSing)
+	{
+		Target = ADSCameraFOV;
+	}
+	else if(GunStatus == EGunStatus::Egs_Nis)
+	{
+		Target = WhipCameraFOV;
+	}
+	else if(GunStatus == EGunStatus::Egs_Reloading)
+	{
+		Target = WhipCameraFOV;
+	}
+	else
+	{
+		Target = WhipCameraFOV;
+	}
+	
+	if(CurrentFov != Target)
+	{
+		CameraComp->SetFieldOfView(FMath::FInterpTo(CurrentFov, Target, DeltaTime,ZoomInterpSpeed));
+	}
+	else
+	{
+		bChangeFOV = false;
+	}
 }
 
 void ASRCharacter::GlobalKeysInputDisable()

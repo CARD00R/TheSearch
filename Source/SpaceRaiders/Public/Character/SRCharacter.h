@@ -200,7 +200,7 @@ protected:
 	float SprintSpeed = DefaultSprintSpeed;
 	float DefaultSprintSpeed = 900.0f;
 	float CrouchSpeed = 300.0f;
-	float WalkSpeed = 450;
+	float WalkSpeed = 400;
 	void SetCharacterMovementSpeed(float MoveSpeed);
 	float GetCharacterMovementSpeed();
 
@@ -258,10 +258,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")
 	bool bGunHolstered = false;
 
-
+	//Aim/Weapons
 	void AimPressed();
 	void AimReleased();
 	void EquipPrimaryWeapon();
+	float ADSCameraFOV = 60.0f;
+	float WhipCameraFOV = 90.0f;
+	void SetCameraFOV(float DeltaTime);
+	float ZoomInterpSpeed = 7.0f;
+	bool bChangeFOV = false;
 
 	//Input
 	void GlobalKeysInputDisable();

@@ -33,9 +33,21 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	UParticleSystem* MuzzleEffect;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	UParticleSystem* ImpactEffect;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* SelectedImpactEffect;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* CharImpactEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* CharCritImpactEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* CharHeadImpactEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* MetalImpactEffect;
+		
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	UParticleSystem* TracerEffect;
 
@@ -45,7 +57,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<UCameraShake> FireCameraShake;
 	
-	void PlayFireEffects(FVector TracerEnd);
+	void PlayFireEffects(FVector TracerEnd, FHitResult HitRes);
 	
 public:	
 

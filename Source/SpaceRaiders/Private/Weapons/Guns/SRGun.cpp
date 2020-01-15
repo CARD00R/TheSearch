@@ -6,6 +6,8 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
+#include "SpaceRaiders.h"
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -44,6 +46,7 @@ void ASRGun::Fire()
 		QueryParams.AddIgnoredActor(MyOwner);
 		QueryParams.AddIgnoredActor(this);
 		QueryParams.bTraceComplex = true;
+		QueryParams.bReturnPhysicalMaterial = true;
 
 		FVector TracerEndPoint = TraceEnd;
 		
@@ -59,25 +62,40 @@ void ASRGun::Fire()
 			{
 				UGameplayStatics::ApplyPointDamage(HitActor, 20.0f,ShotDirection,Hit,MyOwner->GetInstigatorController(),this,DamageType);
 			}
-
-			if(ImpactEffect)
+			
+			// Obtains surface type from hit object
+			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+			
+			switch (SurfaceType)
 			{
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactEffect, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
+			case SURFACE_CHARACTERDEFAULT:
+				SelectedImpactEffect = CharImpactEffect;
+				break;
+			case SURFACE_CHARACTERCRITICAL:
+				SelectedImpactEffect = CharCritImpactEffect;
+				break;
+			case SURFACE_CHARACTERHEAD:
+				SelectedImpactEffect = CharHeadImpactEffect;
+				break;
+			case SURFACE_METAL:
+				SelectedImpactEffect = MetalImpactEffect;
+				break;
 			}
-
+			
 			TracerEndPoint = Hit.ImpactPoint;
 		}
-
+			
 		if(DebugWeaponDrawing > 0)
 		{
 			DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, 1.4f, 1.5);
 		}
 		
-		PlayFireEffects(TracerEndPoint);
+		PlayFireEffects(TracerEndPoint, Hit);
+		//SEE MEE!
 	}
 }
 
-void ASRGun::PlayFireEffects(FVector TracerEnd)
+void ASRGun::PlayFireEffects(FVector TracerEnd, FHitResult HitRes)
 {
 	if (MuzzleEffect)
 	{
@@ -96,7 +114,12 @@ void ASRGun::PlayFireEffects(FVector TracerEnd)
 			TracerComp->SetVectorParameter(TracerTargetName, TracerEnd);
 		}
 	}
+	if (SelectedImpactEffect)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedImpactEffect, HitRes.ImpactPoint, HitRes.ImpactNormal.Rotation());
+	}
 
+	// Play Camera Shake BP
 	APawn* MyOwner = Cast<APawn>(GetOwner());
 	if(MyOwner)
 	{

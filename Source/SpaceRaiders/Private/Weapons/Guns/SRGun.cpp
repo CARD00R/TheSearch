@@ -64,10 +64,11 @@ void ASRGun::Fire()
 			}
 			
 			// Obtains surface type from hit object
-			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+			EPhysicalSurface ObjectSurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
 			
-			switch (SurfaceType)
+			switch (ObjectSurfaceType)
 			{
+			
 			case SURFACE_CHARACTERDEFAULT:
 				SelectedImpactEffect = CharImpactEffect;
 				break;

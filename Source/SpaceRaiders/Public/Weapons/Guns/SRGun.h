@@ -20,7 +20,9 @@ public:
 	ASRGun();
 
 protected:
-
+	
+	virtual void BeginPlay() override;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	USkeletalMeshComponent* MeshComp;
 
@@ -29,7 +31,8 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName MuzzleSocketName;
-	
+
+	// Effects
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	UParticleSystem* MuzzleEffect;
 	
@@ -58,10 +61,22 @@ protected:
 	TSubclassOf<UCameraShake> FireCameraShake;
 	
 	void PlayFireEffects(FVector TracerEnd, FHitResult HitRes);
-	
-public:	
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	//
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float BaseDamage = 20.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	// RPM - Bullets per minute fired
+	float RateOfFire;
 	void Fire();
+	float LastFiredTime;
+	float TimeBetweenShots;
+
+	FTimerHandle FireTimer;
+public:
+	
+	void StartFire();
+	
+	void StopFire();
 	
 };

@@ -8,6 +8,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "SpaceRaiders.h"
+#include "TimerManager.h"
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -25,6 +26,13 @@ ASRGun::ASRGun()
 
 	MuzzleSocketName = "MuzzleSocket";
 	TracerTargetName = "Target";
+}
+
+void ASRGun::BeginPlay()
+{
+	Super::BeginPlay();
+
+	TimeBetweenShots = 60 / RateOfFire;
 }
 
 void ASRGun::Fire()
@@ -52,31 +60,44 @@ void ASRGun::Fire()
 		
 		FHitResult Hit;
 		
-		if(GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, ECC_Visibility, QueryParams))
+		if(GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_GUN, QueryParams))
 		{
 			// Blocking hit! Process damage/effects
 
 			AActor* HitActor = Hit.GetActor();
-			
+			EPhysicalSurface ObjectSurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+
+			float ActualDamage = BaseDamage;
+			if(ObjectSurfaceType == SURFACE_CHARHEAD)
+			{
+				ActualDamage *= 5.0f;
+			}
+			else if(ObjectSurfaceType == SURFACE_CHARCHEST)
+			{
+				ActualDamage *= 3.0f;
+			}
 			if(HitActor)
 			{
-				UGameplayStatics::ApplyPointDamage(HitActor, 20.0f,ShotDirection,Hit,MyOwner->GetInstigatorController(),this,DamageType);
+				UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage,ShotDirection,Hit,MyOwner->GetInstigatorController(),this,DamageType);
 			}
 			
 			// Obtains surface type from hit object
-			EPhysicalSurface ObjectSurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
-			
+
+
 			switch (ObjectSurfaceType)
 			{
 			
-			case SURFACE_CHARACTERDEFAULT:
+			case SURFACE_CHARDEFAULT:
 				SelectedImpactEffect = CharImpactEffect;
 				break;
-			case SURFACE_CHARACTERCRITICAL:
+			case SURFACE_CHARCRITICAL:
 				SelectedImpactEffect = CharCritImpactEffect;
 				break;
-			case SURFACE_CHARACTERHEAD:
+			case SURFACE_CHARHEAD:
 				SelectedImpactEffect = CharHeadImpactEffect;
+				break;
+			case SURFACE_CHARCHEST:
+				SelectedImpactEffect = CharImpactEffect;
 				break;
 			case SURFACE_METAL:
 				SelectedImpactEffect = MetalImpactEffect;
@@ -84,6 +105,10 @@ void ASRGun::Fire()
 			}
 			
 			TracerEndPoint = Hit.ImpactPoint;
+			if(ObjectSurfaceType == SURFACE_METAL)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("METAL"));
+			}
 		}
 			
 		if(DebugWeaponDrawing > 0)
@@ -92,8 +117,20 @@ void ASRGun::Fire()
 		}
 		
 		PlayFireEffects(TracerEndPoint, Hit);
-		//SEE MEE!
+		LastFiredTime = GetWorld()->TimeSeconds;
 	}
+}
+
+void ASRGun::StartFire()
+{
+	float FirstDelay = FMath::Max(LastFiredTime + TimeBetweenShots - GetWorld()->TimeSeconds,0.0f);
+	
+	GetWorldTimerManager().SetTimer(FireTimer,this, &ASRGun::Fire, TimeBetweenShots, true, FirstDelay);
+}
+
+void ASRGun::StopFire()
+{
+	GetWorldTimerManager().ClearTimer(FireTimer);
 }
 
 void ASRGun::PlayFireEffects(FVector TracerEnd, FHitResult HitRes)

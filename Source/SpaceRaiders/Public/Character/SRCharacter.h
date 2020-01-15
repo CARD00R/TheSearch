@@ -268,7 +268,8 @@ protected:
 	float ZoomInterpSpeed = 7.0f;
 	bool bChangeFOV = false;
 	ASRGun* CurrentWeapon;
-	void StartFire();
+	void PullTrigger();
+	void ReleaseTrigger();
 	UPROPERTY(EditDefaultsOnly, Category= "Weapon")
 	TSubclassOf<ASRGun> StarterWeaponClass;
 	UPROPERTY(VisibleDefaultsOnly, Category= "Weapon")

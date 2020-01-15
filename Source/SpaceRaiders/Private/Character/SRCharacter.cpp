@@ -130,7 +130,8 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ASRCharacter::AimPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ASRCharacter::AimReleased);
 	PlayerInputComponent->BindAction("PrimaryWeapon", IE_Pressed, this, &ASRCharacter::EquipPrimaryWeapon);
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASRCharacter::StartFire);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASRCharacter::PullTrigger);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASRCharacter::ReleaseTrigger);
 }
 
 // Input
@@ -864,14 +865,6 @@ void ASRCharacter::SlideSpeedCalculation()
 bool ASRCharacter::GetShouldHardLand()
 {
 	return bShouldHardLand;
-	/*if(bShouldHardLand)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}*/
 }
 
 void ASRCharacter::SetCharacterMovementSpeed(float MoveSpeed)
@@ -1015,10 +1008,21 @@ void ASRCharacter::SetCameraFOV(float DeltaTime)
 
 // Weapon & Aim
 #pragma region Weapons & Aim
-void ASRCharacter::StartFire()
+void ASRCharacter::PullTrigger()
 {
-	CurrentWeapon->Fire();
+	if(CurrentWeapon)
+	{
+		CurrentWeapon->StartFire();
+	}
 }
+void ASRCharacter::ReleaseTrigger()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->StopFire();
+	}
+}
+
 
 void ASRCharacter::AimPressed()
 {

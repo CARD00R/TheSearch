@@ -4,7 +4,12 @@
 
 #include "CoreMinimal.h"
 
-#define SURFACE_CHARACTERDEFAULT		SurfaceType1
-#define SURFACE_CHARACTERCRITICAL		SurfaceType2
-#define SURFACE_CHARACTERHEAD			SurfaceType3
-#define SURFACE_METAL					SurfaceType4
+// Surface Types
+#define SURFACE_CHARDEFAULT			SurfaceType1
+#define SURFACE_CHARCRITICAL		SurfaceType2
+#define SURFACE_CHARHEAD			SurfaceType3
+#define SURFACE_CHARCHEST			SurfaceType4
+#define SURFACE_METAL				SurfaceType5
+
+// Collision/Trace Channels
+#define COLLISION_GUN					ECC_GameTraceChannel1

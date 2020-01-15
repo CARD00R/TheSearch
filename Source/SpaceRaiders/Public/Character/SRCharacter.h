@@ -5,12 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include <hlslcc/hlslcc/src/hlslcc_lib/compiler.h>
+//#include "Weapons/Guns/SRGun.h"
 #include "SRCharacter.generated.h"
 
 class USkeletalMeshComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class APlayerController;
+class ASRGun;
 
 UENUM(BlueprintType)
 enum class EStanceStatus : uint8
@@ -112,7 +114,7 @@ public:
 	FRotator MeshInitialiseRotation = FRotator(0, -90, 0);
 	//SpringArmComponent
 	FVector SpringArmInitialiseLocation = FVector(-14, 2, 70);
-	FVector SpringArmInitialiseSocketOffset = FVector(0, 90, 30);
+	FVector SpringArmInitialiseSocketOffset = FVector(0, 55, 30);
 
 
 	//InAir Status
@@ -253,12 +255,10 @@ protected:
 	float HardLandDelay = 1.7f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Fall")
 	float SoftLandDelay = 0.8f;
-		
-	//Weapons
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")
-	bool bGunHolstered = false;
 
 	//Aim/Weapons
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	bool bGunHolstered = false;
 	void AimPressed();
 	void AimReleased();
 	void EquipPrimaryWeapon();
@@ -267,7 +267,13 @@ protected:
 	void SetCameraFOV(float DeltaTime);
 	float ZoomInterpSpeed = 7.0f;
 	bool bChangeFOV = false;
-
+	ASRGun* CurrentWeapon;
+	void StartFire();
+	UPROPERTY(EditDefaultsOnly, Category= "Weapon")
+	TSubclassOf<ASRGun> StarterWeaponClass;
+	UPROPERTY(VisibleDefaultsOnly, Category= "Weapon")
+	FName WeaponAttachSocketName = "StarterGunSocket";
+	
 	//Input
 	void GlobalKeysInputDisable();
 	void GlobalKeysInputEnable();

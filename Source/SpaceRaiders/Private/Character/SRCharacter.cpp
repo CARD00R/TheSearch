@@ -11,6 +11,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
+#include "Weapons/Guns/SRGun.h"
 
 // Sets default values
 ASRCharacter::ASRCharacter()
@@ -51,10 +52,6 @@ ASRCharacter::ASRCharacter()
 	bIsMovingForward = false;
 	bIsMovingRight = false;
 
-	// Replication Variables
-    SetReplicateMovement(true);
-	SetReplicates(true);
-
 	// Default Stance, Movement Statuses
 	SetStanceStatus(EStanceStatus::Ess_Standing);
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
@@ -70,6 +67,17 @@ ASRCharacter::ASRCharacter()
 void ASRCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//Spawn a default weapon
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	CurrentWeapon = GetWorld()->SpawnActor <ASRGun>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	
+	if(CurrentWeapon)
+	{
+		CurrentWeapon->SetOwner(this);
+		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale,WeaponAttachSocketName);
+	}
 }
 
 // Called every frame
@@ -100,24 +108,33 @@ void ASRCharacter::Tick(float DeltaTime)
 void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	//Axis
+
+	//Axis Events
+	
 	PlayerInputComponent->BindAxis("MoveForward", this, &ASRCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ASRCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("LookUp", this, &ASRCharacter::LookUp);
 	PlayerInputComponent->BindAxis("Turn", this, &ASRCharacter::Turn);
-	//Action
-	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASRCharacter::CrouchSlideCheckPressed);
-	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASRCharacter::CrouchSlideCheckReleased);
+
+	//Action Events
+
 	PlayerInputComponent->BindAction("FreeLook", IE_Pressed, this, &ASRCharacter::FreeLookOn);
 	PlayerInputComponent->BindAction("FreeLook", IE_Released, this, &ASRCharacter::FreeLookOff);
+	/////// Movement Events
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASRCharacter::CrouchSlideCheckPressed);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASRCharacter::CrouchSlideCheckReleased);
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASRCharacter::StartSprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASRCharacter::SprintReleased);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASRCharacter::StartJump);
+	/////// Weapons & ADS
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ASRCharacter::AimPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ASRCharacter::AimReleased);
 	PlayerInputComponent->BindAction("PrimaryWeapon", IE_Pressed, this, &ASRCharacter::EquipPrimaryWeapon);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASRCharacter::StartFire);
 }
 
+// Input
+#pragma region Input 
 void ASRCharacter::Landed(const FHitResult & Hit)
 {
 	Super::Landed(Hit);
@@ -222,37 +239,31 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 	SetInAirStatus(EInAirStatus::Eias_Nis);
 }
 
-FVector ASRCharacter::GetPawnViewLocation() const
-{
-	if (CameraComp)
-	{
-		return CameraComp->GetComponentLocation();
-	}
-	
-	return Super::GetPawnViewLocation();
-}
-
 void ASRCharacter::MoveForward(float value)
 {
-	
-	if(bGlobalKeysInput)
+
+	if (bGlobalKeysInput)
 	{
 		AddMovementInput(GetActorForwardVector() * value);
-		
+
 		//If player is pressing W/S...
 		if (value != 0)
 		{
 			//...then player is moving forward
 			bIsMovingForward = true;
 
+			if (!bGunHolstered)
+			{
+				//SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.85);
+			}
 			//...and player is standing...
 			if (StanceStatus == EStanceStatus::Ess_Standing)
-			{	
+			{
 				// and Player is just pressing S...
 				if (value < 0)
 				{
 					SetCharacterMovementSpeed(BackwardsJogSpeed);
-					
+
 					//GetCharacterMovement()->MaxWalkSpeed = BackwardsJogSpeed;
 					//...and is sprinting...
 					if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
@@ -269,10 +280,10 @@ void ASRCharacter::MoveForward(float value)
 				// if the player is just pressing W...
 				else
 				{
-					if(!SlideRequest)
+					if (!SlideRequest)
 					{
 						//...and player is ADSing...
-						if(GunStatus == EGunStatus::Egs_ADSing)
+						if (GunStatus == EGunStatus::Egs_ADSing)
 						{
 							//...Set Speed to walkspeed
 							SetCharacterMovementSpeed(WalkSpeed);
@@ -324,7 +335,7 @@ void ASRCharacter::MoveForward(float value)
 								}
 							}
 						}
-					}	
+					}
 				}
 			}
 			//...and player is crouching
@@ -339,30 +350,30 @@ void ASRCharacter::MoveForward(float value)
 			//...then player is not moving forward
 			bIsMovingForward = false;
 
-			if(StanceStatus == EStanceStatus::Ess_Sliding)
+			if (StanceStatus == EStanceStatus::Ess_Sliding)
 			{
 				EndSlide();
 			}
 		}
 	}
-	
+
 	//If Player is not moving forward and not moving right...
-	if(!bIsMovingForward && !bIsMovingRight)
+	if (!bIsMovingForward && !bIsMovingRight)
 	{
 		//...whilst standing
-		if(StanceStatus == EStanceStatus::Ess_Standing)
+		if (StanceStatus == EStanceStatus::Ess_Standing)
 		{//...then player is standing idling
 			SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
 		}
 		//...whilst crouching
-		else if(StanceStatus == EStanceStatus::Ess_Crouching)
+		else if (StanceStatus == EStanceStatus::Ess_Crouching)
 		{
 			//...then player is crouching idling
 			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Idling);
 		}
 	}
 	//If player is not moving forward but is moving right...
-	else if(!bIsMovingForward && bIsMovingRight)
+	else if (!bIsMovingForward && bIsMovingRight)
 	{
 		//...whilst standing...
 		if (StanceStatus == EStanceStatus::Ess_Standing)
@@ -385,13 +396,20 @@ void ASRCharacter::MoveRight(float value)
 	if (bGlobalKeysInput)
 	{
 		AddMovementInput(GetActorRightVector()* value);
-		
+
 		//If player is pressing A/D...
 		if (value != 0)
 		{
 			//...then player is moving right
 			bIsMovingRight = true;
-
+			// just reducing speed by 15% when carrying gun
+			if (!bIsMovingForward)
+			{//&& StanceStatus != EStanceStatus::Ess_Sliding
+				if (!bGunHolstered)
+				{
+					//SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.85);
+				}
+			}
 			//...and player is ADSing...
 			if (GunStatus == EGunStatus::Egs_ADSing)
 			{
@@ -426,9 +444,9 @@ void ASRCharacter::MoveRight(float value)
 
 void ASRCharacter::LookUp(float value)
 {
-	if(bGlobalMouseInput)
+	if (bGlobalMouseInput)
 	{
-		if(Pitch != 60 && Pitch != -60)
+		if (Pitch != 60 && Pitch != -60)
 		{
 			AddControllerPitchInput(value);
 		}
@@ -439,7 +457,7 @@ void ASRCharacter::LookUp(float value)
 				AddControllerPitchInput(value);
 			}
 		}
-		else if(Pitch != -60)
+		else if (Pitch != -60)
 		{
 			if (value > 0)
 			{
@@ -453,10 +471,10 @@ void ASRCharacter::Turn(float value)
 {
 	if (bGlobalMouseInput)
 	{
-		
+
 		float valueMultiplier = 1.0f;
 
-		if(StanceStatus !=EStanceStatus::Ess_Sliding)
+		if (StanceStatus != EStanceStatus::Ess_Sliding)
 		{
 			valueMultiplier = 1.0f;
 		}
@@ -468,7 +486,7 @@ void ASRCharacter::Turn(float value)
 		if (Yaw <= 20 && Yaw >= -20)
 		{
 			bUseControllerRotationYaw = false;
-				
+
 		}
 		else if (Yaw >= 60)
 		{
@@ -488,6 +506,395 @@ void ASRCharacter::Turn(float value)
 		}*/
 		AddControllerYawInput(value*valueMultiplier);
 	}
+}
+
+void ASRCharacter::GlobalKeysInputDisable()
+{
+	bGlobalKeysInput = false;
+}
+
+void ASRCharacter::GlobalKeysInputEnable()
+{
+	bGlobalKeysInput = true;
+}
+
+void ASRCharacter::GlobalMouseInputDisable()
+{
+	bGlobalMouseInput = false;
+}
+
+void ASRCharacter::GlobalMouseInputEnable()
+{
+	bGlobalMouseInput = true;
+}
+#pragma endregion
+
+//Movement
+#pragma region Movement Events
+void ASRCharacter::CrouchSlideCheckPressed()
+{
+	if (StanceStatus != EStanceStatus::Ess_InAir)
+	{
+		if (!bJustPressedSprint)
+		{
+			BeginCrouch();
+		}
+		else
+		{
+			if (bIsMovingForward)
+			{
+				StartSlide();
+				//SetStanceStatus(EStanceStatus::Ess_Crouching);
+				//SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
+				//SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Idling);
+			}
+		}
+	}
+	else
+	{
+		if (bIsMovingForward)
+		{
+			SlideCheck = true;
+			SlideRequest = true;
+		}
+
+	}
+	if (bIsMovingForward)
+	{
+		SlideRequest = true;
+	}
+
+}
+
+void ASRCharacter::CrouchSlideCheckReleased()
+{
+	if (StanceStatus != EStanceStatus::Ess_InAir)
+	{
+		if (StanceStatus != EStanceStatus::Ess_Sliding)
+		{
+			EndCrouch();
+		}
+		else
+		{
+			EndSlide();
+		}
+	}
+	else
+	{
+		SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+	}
+
+	SlideRequest = false;
+	SlideCheck = false;
+}
+
+void ASRCharacter::CrouchToggle()
+{
+	//Toggle crouch boolean
+	bToggleCrouch = !bToggleCrouch;
+
+	if (bToggleCrouch)
+	{
+		BeginCrouch();
+	}
+	else
+	{
+		EndCrouch();
+	}
+}
+
+void ASRCharacter::BeginCrouch()
+{
+	if (!bJustPressedSprint)
+	{
+		if (GetCharacterMovementSpeed() < 800)
+		{
+			SetStanceStatus(EStanceStatus::Ess_Crouching);
+			SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
+			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Idling);
+			GetMesh()->SetRelativeLocation(FVector(0, 0, -63));
+			bCheckCapsuleProperties = true;
+			SetCharacterMovementSpeed(CrouchSpeed);
+		}
+	}
+	else
+	{
+		//StartSlide();
+	}
+}
+
+void ASRCharacter::EndCrouch()
+{
+	SetStanceStatus(EStanceStatus::Ess_Standing);
+	SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
+	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+	GetMesh()->SetRelativeLocation(FVector(0, 0, -88));
+	bCheckCapsuleProperties = true;
+}
+
+void ASRCharacter::StartSprint()
+{
+	// a delay when letting go of sprint to be able to get into sliding state
+	if (GetWorld()->GetTimerManager().IsTimerActive(TimerEndSprint))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerEndSprint);
+	}
+	if (GetStanceStatus() == EStanceStatus::Ess_Crouching)
+	{
+		SlideRequest = false;
+		bCheckCapsuleProperties = true;
+		EndCrouch();
+	}
+	if (GetStanceStatus() == EStanceStatus::Ess_Sliding)
+	{
+		EndSlide();
+	}
+
+	if (StanceStatus == EStanceStatus::Ess_Standing)
+	{
+		bJustPressedSprint = true;
+	}
+
+	SetStanceStatus(EStanceStatus::Ess_Standing);
+	SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+
+}
+
+void ASRCharacter::SprintReleased()
+{
+	GetWorld()->GetTimerManager().SetTimer(TimerEndSprint, this, &ASRCharacter::JustPressedSprint, EndSprintDelay, false);
+	EndSprint();
+}
+
+void ASRCharacter::EndSprint()
+{
+	if (StanceStatus != EStanceStatus::Ess_Sliding)
+	{
+		if (StanceStatus != EStanceStatus::Ess_Crouching)
+		{
+			SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+		}
+	}
+}
+
+void ASRCharacter::JustPressedSprint()
+{
+	bJustPressedSprint = false;
+}
+
+void ASRCharacter::StartJump()
+{
+	if (StanceStatus == EStanceStatus::Ess_Crouching)
+	{
+		UnCrouch();
+		SetStanceStatus(EStanceStatus::Ess_Standing);
+		SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
+		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+	}
+	else if (StanceStatus == EStanceStatus::Ess_Sliding)
+	{
+		EndSlide();
+		SetStanceStatus(EStanceStatus::Ess_InAir);
+		SetInAirStatus(EInAirStatus::Eias_Jumping);
+		Jump();
+
+	}
+	else
+	{
+		SetStanceStatus(EStanceStatus::Ess_InAir);
+		SetInAirStatus(EInAirStatus::Eias_Jumping);
+		Jump();
+	}
+
+
+}
+
+void ASRCharacter::StartSlide()
+{
+	if (bIsMovingForward)
+	{
+		SetStanceStatus(EStanceStatus::Ess_Sliding);
+		bCheckCapsuleProperties = true;
+		GetMesh()->SetRelativeLocation(FVector(0, -25, -25));
+
+		if (GetWorld()->GetTimerManager().IsTimerActive(TimerEndSprint))
+		{
+			GetWorld()->GetTimerManager().ClearTimer(TimerEndSprint);
+		}
+		bJustPressedSprint = false;
+
+	}
+}
+
+void ASRCharacter::EndSlide()
+{
+	SetStanceStatus(EStanceStatus::Ess_Standing);
+	UE_LOG(LogTemp, Warning, TEXT("END SLIDE"));
+	if (!SlideRequest)
+	{
+
+		GetMesh()->SetRelativeLocation(FVector(-5, 0, -88));
+		if ((bIsMovingForward || bIsMovingRight))
+		{
+			if (StandingMovementStatus == EStandingMovementStatus::Esms_Jogging || StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
+			{
+				SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+			}
+		}
+		else
+		{
+			SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
+		}
+	}
+	else if (SlideRequest && GetInAirStatus() == EInAirStatus::Eias_Nis)
+	{
+		BeginCrouch();
+		GetMesh()->SetRelativeLocation(FVector(0, 0, -63));
+		if ((bIsMovingForward || bIsMovingRight))
+		{
+			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Walking);
+		}
+		else
+		{
+			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Idling);
+		}
+	}
+
+	bCheckCapsuleProperties = true;
+	SlideRequest = false;
+}
+
+void ASRCharacter::SlideSlopeDetection()
+{
+	FHitResult SlopeAngleTraceHit;
+
+	FCollisionQueryParams QueryParams;
+	FVector SlopeAngleTraceEnd = FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - SlideTraceLength);
+	FVector SlopeAngleTraceStart = GetActorLocation();
+
+	QueryParams.AddIgnoredActor(this);
+	QueryParams.bTraceComplex = false;
+
+	if (GetWorld()->LineTraceSingleByChannel(SlopeAngleTraceHit, SlopeAngleTraceStart, SlopeAngleTraceEnd, ECC_Visibility, QueryParams))
+	{
+		//Hit
+		DrawDebugLine(GetWorld(), SlopeAngleTraceStart, SlopeAngleTraceEnd, FColor::Green, false, 3, 0, 1);
+		//UE_LOG(LogTemp, Warning, TEXT("%f"), SlopeAngleTraceHit.ImpactNormal.Z);
+		if (SlopeAngleTraceHit.ImpactNormal.Z >= 1.0f)
+		{
+			SetSlideStatus(ESlideStatus::Ess_FlatSlope);
+		}
+		else if (SlopeAngleTraceHit.ImpactNormal.Z < 1.0f && SlopeAngleTraceHit.ImpactNormal.Z >= 0.9f)
+		{
+			SetSlideStatus(ESlideStatus::Ess_SlantedSlope);
+			//SlideRequest = true;
+		}
+		else
+		{
+			SetSlideStatus(ESlideStatus::Ess_SteepSlope);
+			//SlideRequest = true;
+		}
+
+		FHitResult UpDownHillTraceHit;
+		FVector ForwardVector = CameraComp->GetUpVector();
+		FVector UpDownHillStartTrace = FVector(SlopeAngleTraceHit.Location.X, SlopeAngleTraceHit.Location.Y, SlopeAngleTraceHit.Location.Z);
+		FVector UpDownHillTrueStartTrace = (ForwardVector * 100.0f) + UpDownHillStartTrace; //(ForwardVector * 600.0f) +
+		FVector UpDownHillEndTrace = FVector(UpDownHillTrueStartTrace.X, UpDownHillTrueStartTrace.Y, UpDownHillTrueStartTrace.Z - 950.0f); //- 700.0f);
+
+		DrawDebugLine(GetWorld(), UpDownHillTrueStartTrace, UpDownHillEndTrace, FColor::Red, false, 8, 0, 9);
+
+		if (GetWorld()->LineTraceSingleByChannel(UpDownHillTraceHit, UpDownHillTrueStartTrace, UpDownHillEndTrace, ECC_Visibility, QueryParams))
+		{
+			float Startpoint = SlopeAngleTraceHit.ImpactPoint.Z;
+			float EndPoint = UpDownHillTraceHit.ImpactPoint.Z;
+			float PointDifference = Startpoint - EndPoint;
+			if (PointDifference < -0.15f)
+			{
+				EndSlide();
+			}
+			UE_LOG(LogTemp, Warning, TEXT("%f"), PointDifference);
+		}
+		else
+		{
+		}
+	}
+	else
+	{
+		SetSlideStatus(ESlideStatus::Ess_NoSlope);
+	}
+}
+
+void ASRCharacter::SlideSpeedCalculation()
+{
+	if (SlideStatus == ESlideStatus::Ess_FlatSlope)
+	{
+		if (GetCharacterMovementSpeed() > 850)
+		{
+			if (GetCharacterMovementSpeed() > 1650)
+			{
+				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*FastSpeedLoss);
+			}
+			else
+			{
+				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*SlowSpeedLoss);
+			}
+
+		}
+		else
+		{
+			EndSlide();
+		}
+	}
+	else if (SlideStatus == ESlideStatus::Ess_SlantedSlope)
+	{
+		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*SlowSpeedGain);
+	}
+	else if (SlideStatus == ESlideStatus::Ess_SteepSlope)
+	{
+		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*FastSpeedGain);
+	}
+	else
+	{
+		SetSlideStatus(ESlideStatus::Ess_FlatSlope);
+	}
+}
+
+bool ASRCharacter::GetShouldHardLand()
+{
+	return bShouldHardLand;
+	/*if(bShouldHardLand)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}*/
+}
+
+void ASRCharacter::SetCharacterMovementSpeed(float MoveSpeed)
+{
+	GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
+}
+
+float ASRCharacter::GetCharacterMovementSpeed()
+{
+	return GetCharacterMovement()->MaxWalkSpeed;
+}
+#pragma endregion
+
+//Components
+#pragma region  Character Components
+FVector ASRCharacter::GetPawnViewLocation() const
+{
+	if (CameraComp)
+	{
+		return CameraComp->GetComponentLocation();
+	}
+
+	return Super::GetPawnViewLocation();
 }
 
 void ASRCharacter::CheckCapsuleHeightRadius()
@@ -573,62 +980,44 @@ void ASRCharacter::CheckCapsuleHeightRadius()
 
 }
 
-void ASRCharacter::CrouchSlideCheckPressed()
+void ASRCharacter::SetCameraFOV(float DeltaTime)
 {
-	if(StanceStatus != EStanceStatus::Ess_InAir)
+	float CurrentFov = CameraComp->FieldOfView;
+	float Target;
+
+	if (GunStatus == EGunStatus::Egs_ADSing)
 	{
-		if (!bJustPressedSprint)
-		{
-			BeginCrouch();
-		}
-		else
-		{
-			if (bIsMovingForward)
-			{
-				StartSlide();
-				//SetStanceStatus(EStanceStatus::Ess_Crouching);
-				//SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
-				//SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Idling);
-			}
-		}
+		Target = ADSCameraFOV;
+	}
+	else if (GunStatus == EGunStatus::Egs_Nis)
+	{
+		Target = WhipCameraFOV;
+	}
+	else if (GunStatus == EGunStatus::Egs_Reloading)
+	{
+		Target = WhipCameraFOV;
 	}
 	else
 	{
-		if (bIsMovingForward)
-		{
-			SlideCheck = true;
-			SlideRequest = true;
-		}
-
+		Target = WhipCameraFOV;
 	}
-	if(bIsMovingForward)
+
+	if (CurrentFov != Target)
 	{
-		SlideRequest = true;
+		CameraComp->SetFieldOfView(FMath::FInterpTo(CurrentFov, Target, DeltaTime, ZoomInterpSpeed));
 	}
-
+	else
+	{
+		bChangeFOV = false;
+	}
 }
+#pragma endregion 
 
-void ASRCharacter::CrouchSlideCheckReleased()
+// Weapon & Aim
+#pragma region Weapons & Aim
+void ASRCharacter::StartFire()
 {
-	if (StanceStatus != EStanceStatus::Ess_InAir)
-	{
-		if (StanceStatus != EStanceStatus::Ess_Sliding)
-		{
-			EndCrouch();
-		}
-		else
-		{
-			EndSlide();
-		}
-	}
-	else
-	{
-		SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
-		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
-	}
-	
-	SlideRequest = false;
-	SlideCheck = false;
+	CurrentWeapon->Fire();
 }
 
 void ASRCharacter::AimPressed()
@@ -667,357 +1056,9 @@ void ASRCharacter::EquipPrimaryWeapon()
 	bGunHolstered = !bGunHolstered;
 }
 
-void ASRCharacter::SetCameraFOV(float DeltaTime)
-{
-	float CurrentFov = CameraComp->FieldOfView;
-	float Target;
-	
-	if(GunStatus == EGunStatus::Egs_ADSing)
-	{
-		Target = ADSCameraFOV;
-	}
-	else if(GunStatus == EGunStatus::Egs_Nis)
-	{
-		Target = WhipCameraFOV;
-	}
-	else if(GunStatus == EGunStatus::Egs_Reloading)
-	{
-		Target = WhipCameraFOV;
-	}
-	else
-	{
-		Target = WhipCameraFOV;
-	}
-	
-	if(CurrentFov != Target)
-	{
-		CameraComp->SetFieldOfView(FMath::FInterpTo(CurrentFov, Target, DeltaTime,ZoomInterpSpeed));
-	}
-	else
-	{
-		bChangeFOV = false;
-	}
-}
-
-void ASRCharacter::GlobalKeysInputDisable()
-{
-	bGlobalKeysInput = false;
-}
-
-void ASRCharacter::GlobalKeysInputEnable()
-{
-	bGlobalKeysInput = true;
-}
-
-void ASRCharacter::GlobalMouseInputDisable()
-{
-	bGlobalMouseInput = false;
-}	
-
-void ASRCharacter::GlobalMouseInputEnable()
-{
-	bGlobalMouseInput = true;
-}
-
-void ASRCharacter::CrouchToggle()
-{
-	//Toggle crouch boolean
-	bToggleCrouch = !bToggleCrouch;
-	
-	if(bToggleCrouch)
-	{
-		BeginCrouch();
-	}
-	else
-	{
-		EndCrouch();
-	}
-}
-
-void ASRCharacter::BeginCrouch()
-{
-	if(!bJustPressedSprint)
-	{
-		if(GetCharacterMovementSpeed() < 800)
-		{
-			SetStanceStatus(EStanceStatus::Ess_Crouching);
-			SetStandingMovementStatus(EStandingMovementStatus::Esms_Nis);
-			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Idling);
-			GetMesh()->SetRelativeLocation(FVector(0, 0, -63));
-			bCheckCapsuleProperties = true;
-			SetCharacterMovementSpeed(CrouchSpeed);
-		}		
-	}
-	else
-	{
-		//StartSlide();
-	}	
-}
-
-void ASRCharacter::EndCrouch()
-{
-	SetStanceStatus(EStanceStatus::Ess_Standing);
-	SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
-	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
-	GetMesh()->SetRelativeLocation(FVector(0, 0, -88));
-	bCheckCapsuleProperties = true;
-}
-
 bool ASRCharacter::GetGunHolstered()
 {
 	return bGunHolstered;
-}
-
-
-bool ASRCharacter::GetShouldHardLand()
-{
-	return bShouldHardLand;
-	/*if(bShouldHardLand)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}*/
-}
-
-void ASRCharacter::SetCharacterMovementSpeed(float MoveSpeed)
-{
-	GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
-}
-
-float ASRCharacter::GetCharacterMovementSpeed()
-{
-	return GetCharacterMovement()->MaxWalkSpeed;
-}
-
-void ASRCharacter::StartSprint()
-{
-	// a delay when letting go of sprint to be able to get into sliding state
-	if (GetWorld()->GetTimerManager().IsTimerActive(TimerEndSprint))
-	{
-		GetWorld()->GetTimerManager().ClearTimer(TimerEndSprint);
-	}
-	if(GetStanceStatus()==EStanceStatus::Ess_Crouching)
-	{
-		SlideRequest = false;
-		bCheckCapsuleProperties = true;
-		EndCrouch();
-	}
-	if(GetStanceStatus() ==EStanceStatus::Ess_Sliding)
-	{
-		EndSlide();
-	}
-
-	if (StanceStatus == EStanceStatus::Ess_Standing)
-	{
-		bJustPressedSprint = true;
-	}
-
-	SetStanceStatus(EStanceStatus::Ess_Standing);
-	SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
-	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
-	
-}
-
-void ASRCharacter::SprintReleased()
-{
-	GetWorld()->GetTimerManager().SetTimer(TimerEndSprint, this, &ASRCharacter::JustPressedSprint, EndSprintDelay, false);
-	EndSprint();
-}
-
-void ASRCharacter::EndSprint()
-{
-	if(StanceStatus != EStanceStatus::Ess_Sliding)
-	{
-		if (StanceStatus != EStanceStatus::Ess_Crouching)
-		{
-			SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
-		}
-	}
-}
-
-void ASRCharacter::JustPressedSprint()
-{
-	bJustPressedSprint = false;
-}
-
-void ASRCharacter::StartJump()
-{
-	if(StanceStatus == EStanceStatus::Ess_Crouching)
-	{
-		UnCrouch();
-		SetStanceStatus(EStanceStatus::Ess_Standing);
-		SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
-		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);	
-	}
-	else if(StanceStatus == EStanceStatus::Ess_Sliding)
-	{
-		EndSlide();
-		SetStanceStatus(EStanceStatus::Ess_InAir);
-		SetInAirStatus(EInAirStatus::Eias_Jumping);
-		Jump();
-
-	}
-	else
-	{
-		SetStanceStatus(EStanceStatus::Ess_InAir);
-		SetInAirStatus(EInAirStatus::Eias_Jumping);
-		Jump();
-	}
-	
-
-}
-
-void ASRCharacter::StartSlide()
-{
-	if(bIsMovingForward)
-	{
-		SetStanceStatus(EStanceStatus::Ess_Sliding);
-		bCheckCapsuleProperties = true;
-		GetMesh()->SetRelativeLocation(FVector(0, -25, -25));
-
-		if (GetWorld()->GetTimerManager().IsTimerActive(TimerEndSprint))
-		{
-			GetWorld()->GetTimerManager().ClearTimer(TimerEndSprint);
-		}
-		bJustPressedSprint = false;
-		
-	}
-}
-
-void ASRCharacter::EndSlide()
-{
-	SetStanceStatus(EStanceStatus::Ess_Standing);
-	UE_LOG(LogTemp, Warning, TEXT("END SLIDE"));
-	if(!SlideRequest)
-	{
-
-		GetMesh()->SetRelativeLocation(FVector(-5, 0, -88));
-		if ((bIsMovingForward || bIsMovingRight))
-		{
-			if (StandingMovementStatus == EStandingMovementStatus::Esms_Jogging || StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
-			{
-				SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
-			}
-		}
-		else
-		{
-			SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
-		}
-	}
-	else if(SlideRequest && GetInAirStatus() == EInAirStatus::Eias_Nis)
-	{
-		BeginCrouch();
-		GetMesh()->SetRelativeLocation(FVector(0, 0, -63));
-		if ((bIsMovingForward || bIsMovingRight))
-		{
-			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Walking);
-		}
-		else
-		{
-			SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Idling);
-		}
-	}
-
-	bCheckCapsuleProperties = true;
-	SlideRequest = false;
-}
-
-void ASRCharacter::SlideSlopeDetection()
-{
-	FHitResult SlopeAngleTraceHit;
-
-	FCollisionQueryParams QueryParams;
-	FVector SlopeAngleTraceEnd = FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - SlideTraceLength);
-	FVector SlopeAngleTraceStart = GetActorLocation();
-	
-	QueryParams.AddIgnoredActor(this);
-	QueryParams.bTraceComplex = false;
-	
-	if(GetWorld()->LineTraceSingleByChannel(SlopeAngleTraceHit, SlopeAngleTraceStart, SlopeAngleTraceEnd, ECC_Visibility, QueryParams))
-	{
-		//Hit
-		DrawDebugLine(GetWorld(), SlopeAngleTraceStart, SlopeAngleTraceEnd, FColor::Green,false,3,0,1);
-		//UE_LOG(LogTemp, Warning, TEXT("%f"), SlopeAngleTraceHit.ImpactNormal.Z);
-		if(SlopeAngleTraceHit.ImpactNormal.Z >= 1.0f)
-		{
-			SetSlideStatus(ESlideStatus::Ess_FlatSlope);
-		}
-		else if(SlopeAngleTraceHit.ImpactNormal.Z < 1.0f && SlopeAngleTraceHit.ImpactNormal.Z >= 0.9f)
-		{
-			SetSlideStatus(ESlideStatus::Ess_SlantedSlope);
-			//SlideRequest = true;
-		}	
-		else
-		{
-			SetSlideStatus(ESlideStatus::Ess_SteepSlope);
-			//SlideRequest = true;
-		}
-		
-		FHitResult UpDownHillTraceHit;
-		FVector ForwardVector = CameraComp->GetUpVector();
-		FVector UpDownHillStartTrace = FVector(SlopeAngleTraceHit.Location.X, SlopeAngleTraceHit.Location.Y, SlopeAngleTraceHit.Location.Z);
-		FVector UpDownHillTrueStartTrace = (ForwardVector * 100.0f) + UpDownHillStartTrace; //(ForwardVector * 600.0f) +
-		FVector UpDownHillEndTrace = FVector(UpDownHillTrueStartTrace.X, UpDownHillTrueStartTrace.Y, UpDownHillTrueStartTrace.Z - 950.0f); //- 700.0f);
-
-		DrawDebugLine(GetWorld(), UpDownHillTrueStartTrace, UpDownHillEndTrace, FColor::Red, false, 8, 0, 9);
-
-		if(GetWorld()->LineTraceSingleByChannel(UpDownHillTraceHit, UpDownHillTrueStartTrace, UpDownHillEndTrace, ECC_Visibility, QueryParams))
-		{
-			float Startpoint = SlopeAngleTraceHit.ImpactPoint.Z;
-			float EndPoint = UpDownHillTraceHit.ImpactPoint.Z;
-			float PointDifference = Startpoint - EndPoint;
-			if(PointDifference < -0.15f)
-			{
-				EndSlide();
-			}
-			UE_LOG(LogTemp, Warning, TEXT("%f"), PointDifference);
-		}
-		else
-		{
-		}
-	}
-	else
-	{
-		SetSlideStatus(ESlideStatus::Ess_NoSlope);
-	}
-}
-
-void ASRCharacter::SlideSpeedCalculation()
-{
-	if (SlideStatus == ESlideStatus::Ess_FlatSlope)
-	{
-		if(GetCharacterMovementSpeed() > 850)
-		{
-			if(GetCharacterMovementSpeed() > 1650)
-			{
-				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*FastSpeedLoss);
-			}
-			else
-			{
-				SetCharacterMovementSpeed(GetCharacterMovementSpeed()*SlowSpeedLoss);
-			}
-
-		}
-		else
-		{
-			EndSlide();
-		}	
-	}
-	else if (SlideStatus == ESlideStatus::Ess_SlantedSlope)
-	{
-		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*SlowSpeedGain);
-	}
-	else if(SlideStatus == ESlideStatus::Ess_SteepSlope)
-	{
-		SetCharacterMovementSpeed(GetCharacterMovementSpeed()*FastSpeedGain);
-	}
-	else
-	{
-		SetSlideStatus(ESlideStatus::Ess_FlatSlope);
-	}
 }
 
 void ASRCharacter::FreeLookOn()
@@ -1029,7 +1070,7 @@ void ASRCharacter::FreeLookOff()
 {
 	bUseControllerRotationYaw = true;
 }
-
+#pragma endregion 
 
 // Stance, Crouching, Standing, InAir Status
 #pragma region Statuses Getters & Setters

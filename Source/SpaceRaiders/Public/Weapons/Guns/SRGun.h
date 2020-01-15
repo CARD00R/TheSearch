@@ -9,7 +9,7 @@
 class USkeletalMeshComponent;
 class UDamageType;
 class UParticleSystem;
-
+class UCameraShake;
 UCLASS()
 class SPACERAIDERS_API ASRGun : public AActor
 {
@@ -20,14 +20,9 @@ public:
 	ASRGun();
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	USkeletalMeshComponent* MeshComp;
-
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void Fire();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Weapon")
 	TSubclassOf<UDamageType> DamageType;
@@ -46,9 +41,15 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName TracerTargetName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	TSubclassOf<UCameraShake> FireCameraShake;
+	
+	void PlayFireEffects(FVector TracerEnd);
 	
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void Fire();
 	
 };

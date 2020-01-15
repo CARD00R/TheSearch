@@ -6,23 +6,23 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
+
+static int32 DebugWeaponDrawing = 0;
+FAutoConsoleVariableRef CVARDebugWeaponDrawing(
+	TEXT("SR.DebugWeapons"),
+	DebugWeaponDrawing,
+	TEXT("Draw Debug Lines for weapons"),
+	ECVF_Cheat);
+
 // Sets default values
 ASRGun::ASRGun()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
 	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComp"));
 	RootComponent = MeshComp;
 
 	MuzzleSocketName = "MuzzleSocket";
 	TracerTargetName = "Target";
-}
-
-// Called when the game starts or when spawned
-void ASRGun::BeginPlay()
-{
-	Super::BeginPlay();
-	
 }
 
 void ASRGun::Fire()
@@ -67,35 +67,45 @@ void ASRGun::Fire()
 
 			TracerEndPoint = Hit.ImpactPoint;
 		}
-		
-		//DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, 1.4f, 1.5);
-		
-		if(MuzzleEffect)
-		{
-			
-			UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, MeshComp, MuzzleSocketName);
-		}
-		if(TracerEffect)
-		{
-			FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
-			
-			UParticleSystemComponent* TracerComp = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), TracerEffect, MuzzleLocation);
 
-			//Getting Tracer Particle system and setting the target parameter to the end of the tracerpoint
-			if(TracerComp)
-			{
-				TracerComp->SetVectorParameter(TracerTargetName, TracerEndPoint);
-			}
+		if(DebugWeaponDrawing > 0)
+		{
+			DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, 1.4f, 1.5);
 		}
-
+		
+		PlayFireEffects(TracerEndPoint);
 	}
 }
 
-// Called every frame
-void ASRGun::Tick(float DeltaTime)
+void ASRGun::PlayFireEffects(FVector TracerEnd)
 {
-	Super::Tick(DeltaTime);
+	if (MuzzleEffect)
+	{
 
+		UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, MeshComp, MuzzleSocketName);
+	}
+	if (TracerEffect)
+	{
+		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+
+		UParticleSystemComponent* TracerComp = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), TracerEffect, MuzzleLocation);
+
+		//Getting Tracer Particle system and setting the target parameter to the end of the tracerpoint
+		if (TracerComp)
+		{
+			TracerComp->SetVectorParameter(TracerTargetName, TracerEnd);
+		}
+	}
+
+	APawn* MyOwner = Cast<APawn>(GetOwner());
+	if(MyOwner)
+	{
+		APlayerController* PC = Cast<APlayerController>(MyOwner->GetController());
+		if(PC)
+		{
+			PC->ClientPlayCameraShake(FireCameraShake);
+		}
+	}
 }
 
 

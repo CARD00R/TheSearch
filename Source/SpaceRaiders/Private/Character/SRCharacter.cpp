@@ -12,6 +12,8 @@
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
 #include "Weapons/Guns/SRGun.h"
+#include "SpaceRaiders.h"
+#include "Components/SRHealthComponent.h"
 
 // Sets default values
 ASRCharacter::ASRCharacter()
@@ -37,6 +39,9 @@ ASRCharacter::ASRCharacter()
 	//CapsuleComp
 	GetCapsuleComponent()->SetCapsuleRadius(20.0f);
 	
+	//HealthComp
+	OwningHealthComp = CreateDefaultSubobject<USRHealthComponent>(TEXT("HealthComp"));
+	
 	//Movement Component
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanJump = true;
@@ -60,7 +65,11 @@ ASRCharacter::ASRCharacter()
 
 	//Global
 	bGlobalKeysInput = true;
-	bGlobalMouseInput = true;	
+	bGlobalMouseInput = true;
+
+	// Collision
+	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_GUN, ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 }
 
 // Called when the game starts or when spawned
@@ -78,6 +87,8 @@ void ASRCharacter::BeginPlay()
 		CurrentWeapon->SetOwner(this);
 		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale,WeaponAttachSocketName);
 	}
+
+	OwningHealthComp->OnHealthChanged.AddDynamic(this, &ASRCharacter::OnHealthChanged);
 }
 
 // Called every frame
@@ -1002,6 +1013,21 @@ void ASRCharacter::SetCameraFOV(float DeltaTime)
 	else
 	{
 		bChangeFOV = false;
+	}
+}
+
+
+void ASRCharacter::OnHealthChanged(USRHealthComponent* HealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, 
+	class AController* InstigatedBy, AActor* DamageCauser)
+{
+	if(Health <= 0.0f)
+	{
+		// DIE
+		GetMovementComponent()->StopMovementImmediately();
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		SetStanceStatus(EStanceStatus::Ess_Dead);
+		GlobalKeysInputDisable();
+		SpringArmComp->bUsePawnControlRotation = true;
 	}
 }
 #pragma endregion 

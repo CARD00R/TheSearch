@@ -74,7 +74,7 @@ void ASRGun::Fire()
 			}
 			else if(ObjectSurfaceType == SURFACE_CHARCHEST)
 			{
-				ActualDamage *= 3.0f;
+				ActualDamage *= 2.0f;
 			}
 			if(HitActor)
 			{

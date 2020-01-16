@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include <hlslcc/hlslcc/src/hlslcc_lib/compiler.h>
-//#include "Weapons/Guns/SRGun.h"
 #include "SRCharacter.generated.h"
 
 class USkeletalMeshComponent;
@@ -13,6 +12,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class APlayerController;
 class ASRGun;
+class USRHealthComponent;
 
 UENUM(BlueprintType)
 enum class EStanceStatus : uint8
@@ -21,6 +21,7 @@ enum class EStanceStatus : uint8
 	Ess_Crouching UMETA(DisplayName = "Crouching"),
 	Ess_InAir UMETA(DisplayName = "InAir"),
 	Ess_Sliding UMETA(DisplayName = "Sliding"),
+	Ess_Dead UMETA(DisplayName = "Dead"),
 	Ess_Max UMETA(DisplayName = "DefaultMax")
 };
 
@@ -94,6 +95,8 @@ public:
 	USpringArmComponent* SpringArmComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* CameraComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USRHealthComponent* OwningHealthComp;
 	
 	APlayerController* PlayerController;
 
@@ -105,9 +108,7 @@ public:
 	float SlidingCapsuleHeight = 30.0f;
 	float SlidingCapsuleRadius = 30.0f;
 	
-
-
-	
+	   	
 	// Construction Variables
 	//Mesh
 	FVector MeshInitialiseLocation = FVector(-5, 0, -88);
@@ -280,6 +281,10 @@ protected:
 	void GlobalKeysInputEnable();
 	void GlobalMouseInputDisable();
 	void GlobalMouseInputEnable();
+
+	// Health
+	UFUNCTION()
+	void OnHealthChanged(USRHealthComponent* HealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 	
 public:	
 	// Called every frame

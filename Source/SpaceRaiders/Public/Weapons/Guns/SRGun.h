@@ -10,6 +10,8 @@ class USkeletalMeshComponent;
 class UDamageType;
 class UParticleSystem;
 class UCameraShake;
+class UAnimMontage;
+
 UCLASS()
 class SPACERAIDERS_API ASRGun : public AActor
 {
@@ -62,7 +64,9 @@ protected:
 	
 	void PlayFireEffects(FVector TracerEnd, FHitResult HitRes);
 
-	//
+
+
+	// Values
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	float BaseDamage = 20.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
@@ -79,4 +83,9 @@ public:
 	
 	void StopFire();
 	
+	// Montages
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UAnimMontage* FireMontage;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UAnimMontage* ReloadMontage;
 };

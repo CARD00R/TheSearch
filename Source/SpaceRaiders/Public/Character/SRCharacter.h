@@ -285,7 +285,11 @@ protected:
 	// Health
 	UFUNCTION()
 	void OnHealthChanged(USRHealthComponent* HealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
-	
+
+
+	// Play Montage
+	float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

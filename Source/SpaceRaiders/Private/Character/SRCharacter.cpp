@@ -14,6 +14,7 @@
 #include "Weapons/Guns/SRGun.h"
 #include "SpaceRaiders.h"
 #include "Components/SRHealthComponent.h"
+#include "Animation/AnimInstance.h"
 
 // Sets default values
 ASRCharacter::ASRCharacter()
@@ -1030,6 +1031,33 @@ void ASRCharacter::OnHealthChanged(USRHealthComponent* HealthComp, float Health,
 		SpringArmComp->bUsePawnControlRotation = true;
 	}
 }
+
+float ASRCharacter::PlayAnimMontage(UAnimMontage * AnimMontage, float InPlayRate, FName StartSectionName)
+{
+	UAnimInstance* AnimInstance;
+	
+	if(GetMesh())
+	{
+		AnimInstance = GetMesh()->GetAnimInstance();
+	}
+	else
+	{
+		AnimInstance = nullptr;
+	}
+
+	if(AnimMontage && AnimInstance)
+	{
+		float const Duration = AnimInstance->Montage_Play(AnimMontage, InPlayRate);
+		
+		// Start at a given Section if given
+		if (StartSectionName != NAME_None)
+		{
+			AnimInstance->Montage_JumpToSection(StartSectionName, AnimMontage);
+		}
+		return Duration;
+	}
+	return 0.f;
+}
 #pragma endregion 
 
 // Weapon & Aim
@@ -1039,8 +1067,10 @@ void ASRCharacter::PullTrigger()
 	if(CurrentWeapon)
 	{
 		CurrentWeapon->StartFire();
+		PlayAnimMontage(CurrentWeapon->FireMontage, 2.0f, NAME_None);
 	}
 }
+
 void ASRCharacter::ReleaseTrigger()
 {
 	if (CurrentWeapon)
@@ -1048,7 +1078,6 @@ void ASRCharacter::ReleaseTrigger()
 		CurrentWeapon->StopFire();
 	}
 }
-
 
 void ASRCharacter::AimPressed()
 {

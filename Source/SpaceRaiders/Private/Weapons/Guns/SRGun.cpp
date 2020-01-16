@@ -118,6 +118,8 @@ void ASRGun::Fire()
 		
 		PlayFireEffects(TracerEndPoint, Hit);
 		LastFiredTime = GetWorld()->TimeSeconds;
+
+		
 	}
 }
 

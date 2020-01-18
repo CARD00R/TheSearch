@@ -14,6 +14,7 @@
 
 class APawn;
 class ASRCharacter;
+class ASRGun;
 
 UCLASS()
 class SPACERAIDERS_API USRCharacterAnimInstance : public UAnimInstance
@@ -90,14 +91,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
 	ASRCharacter* Character;
 
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
 	bool bGunHolstered;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool SlideRequest;
 
-	
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void ReloadBullets();
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void ReloadEnd();
 
 	UFUNCTION(BlueprintCallable, Category = "Animation Properties")
 	void UpdateAnimationProperties(float DeltaTime);
@@ -108,6 +112,7 @@ protected:
 public:
 
 	virtual void NativeInitializeAnimation() override;
+
 
 	
 };

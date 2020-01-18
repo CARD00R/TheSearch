@@ -261,6 +261,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	bool bGunHolstered = false;
 	void AimPressed();
+
 	void AimReleased();
 	void EquipPrimaryWeapon();
 	float ADSCameraFOV = 60.0f;
@@ -268,7 +269,6 @@ protected:
 	void SetCameraFOV(float DeltaTime);
 	float ZoomInterpSpeed = 7.0f;
 	bool bChangeFOV = false;
-	ASRGun* CurrentWeapon;
 	void PullTrigger();
 	void ReleaseTrigger();
 	UPROPERTY(EditDefaultsOnly, Category= "Weapon")
@@ -288,9 +288,6 @@ protected:
 	UFUNCTION()
 	void OnHealthChanged(USRHealthComponent* HealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
-
-
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -301,4 +298,8 @@ public:
 	virtual FVector GetPawnViewLocation() const override;
 	// Play Montage
 	float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName);
+	// Weapon
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	ASRGun* CurrentWeapon;
+	bool bAimPressed = false;
 };

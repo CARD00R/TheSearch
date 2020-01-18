@@ -33,113 +33,126 @@ void ASRGun::BeginPlay()
 {
 	Super::BeginPlay();
 
-	TimeBetweenShots = 60 / RateOfFire;
+	TimeBetweenShots = 60 / RateOfFire;	
 }
 
 void ASRGun::Fire()
 {
-	// Trace world from pawn eyes to crosshair location
-
-	AActor* MyOwner = GetOwner();
-	if(MyOwner)
+	if (CurrentBulletsInMag > 0)
 	{
-		// Gets the location and rotation of the pawn's eyes
-		FVector EyeLocation;
-		FRotator EyeRotation;
-		MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
-		
-		FVector ShotDirection = EyeRotation.Vector();
-		FVector TraceEnd = EyeLocation + (ShotDirection * 10000);
-		
-		FCollisionQueryParams QueryParams;
-		QueryParams.AddIgnoredActor(MyOwner);
-		QueryParams.AddIgnoredActor(this);
-		QueryParams.bTraceComplex = true;
-		QueryParams.bReturnPhysicalMaterial = true;
-
-		FVector TracerEndPoint = TraceEnd;
-		
-		FHitResult Hit;
-		
-		if(GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_GUN, QueryParams))
+		// Trace world from pawn eyes to crosshair location
+		AActor* MyOwner = GetOwner();
+		if (MyOwner)
 		{
-			// Blocking hit! Process damage/effects
+			// Gets the location and rotation of the pawn's eyes
+			FVector EyeLocation;
+			FRotator EyeRotation;
+			MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
-			AActor* HitActor = Hit.GetActor();
-			EPhysicalSurface ObjectSurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+			FVector ShotDirection = EyeRotation.Vector();
+			FVector TraceEnd = EyeLocation + (ShotDirection * 10000);
 
-			float ActualDamage = BaseDamage;
-			if(ObjectSurfaceType == SURFACE_CHARHEAD)
+			FCollisionQueryParams QueryParams;
+			QueryParams.AddIgnoredActor(MyOwner);
+			QueryParams.AddIgnoredActor(this);
+			QueryParams.bTraceComplex = true;
+			QueryParams.bReturnPhysicalMaterial = true;
+
+			FVector TracerEndPoint = TraceEnd;
+
+			FHitResult Hit;
+
+			if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_GUN, QueryParams))
 			{
-				ActualDamage *= 5.0f;
-			}
-			else if(ObjectSurfaceType == SURFACE_CHARCHEST)
-			{
-				ActualDamage *= 2.0f;
-			}
-			if(HitActor)
-			{
-				UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage,ShotDirection,Hit,MyOwner->GetInstigatorController(),this,DamageType);
-			}
-			
-			// Obtains surface type from hit object
+				// Blocking hit! Process damage/effects
+
+				AActor* HitActor = Hit.GetActor();
+				EPhysicalSurface ObjectSurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+
+				float ActualDamage = BaseDamage;
+				if (ObjectSurfaceType == SURFACE_CHARHEAD)
+				{
+					ActualDamage *= 5.0f;
+				}
+				else if (ObjectSurfaceType == SURFACE_CHARCHEST)
+				{
+					ActualDamage *= 2.0f;
+				}
+				if (HitActor)
+				{
+					UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
+				}
+
+				// Obtains surface type from hit object
 
 
-			switch (ObjectSurfaceType)
-			{
-			
-			case SURFACE_CHARDEFAULT:
-				SelectedImpactEffect = CharImpactEffect;
-				break;
-			case SURFACE_CHARCRITICAL:
-				SelectedImpactEffect = CharCritImpactEffect;
-				break;
-			case SURFACE_CHARHEAD:
-				SelectedImpactEffect = CharHeadImpactEffect;
-				break;
-			case SURFACE_CHARCHEST:
-				SelectedImpactEffect = CharImpactEffect;
-				break;
-			case SURFACE_METAL:
-				SelectedImpactEffect = MetalImpactEffect;
-				break;
+				switch (ObjectSurfaceType)
+				{
+
+				case SURFACE_CHARDEFAULT:
+					SelectedImpactEffect = CharImpactEffect;
+					break;
+				case SURFACE_CHARCRITICAL:
+					SelectedImpactEffect = CharCritImpactEffect;
+					break;
+				case SURFACE_CHARHEAD:
+					SelectedImpactEffect = CharHeadImpactEffect;
+					break;
+				case SURFACE_CHARCHEST:
+					SelectedImpactEffect = CharImpactEffect;
+					break;
+				case SURFACE_METAL:
+					SelectedImpactEffect = MetalImpactEffect;
+					break;
+				}
+
+				TracerEndPoint = Hit.ImpactPoint;
+				if (ObjectSurfaceType == SURFACE_METAL)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("METAL"));
+				}
 			}
-			
-			TracerEndPoint = Hit.ImpactPoint;
-			if(ObjectSurfaceType == SURFACE_METAL)
+
+			if (DebugWeaponDrawing > 0)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("METAL"));
+				DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, 1.4f, 1.5);
 			}
+
+			PlayFireEffects(TracerEndPoint, Hit);
+			LastFiredTime = GetWorld()->TimeSeconds;
+
+			// Bullets
+			if (CurrentBulletsInMag > 0)
+			{
+				CurrentBulletsInMag -= 1.0f;
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("*click* NEED TO RELOAD"));
+				//Reload
+			}
+
+
 		}
-			
-		if(DebugWeaponDrawing > 0)
-		{
-			DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, 1.4f, 1.5);
-		}
-
-		PlayFireEffects(TracerEndPoint, Hit);
-		LastFiredTime = GetWorld()->TimeSeconds;
-
-		// Bullets
-		if(CurrentBulletsInMag>0)
-		{
-			CurrentBulletsInMag -= 1.0f;
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("*click* NEED TO RELOAD"));
-			//Reload
-		}
-
-		
+	}
+	else
+	{
+		//*click click* No ammo in clip
 	}
 }
 
 void ASRGun::StartFire()
 {
-	float FirstDelay = FMath::Max(LastFiredTime + TimeBetweenShots - GetWorld()->TimeSeconds,0.0f);
-	
-	GetWorldTimerManager().SetTimer(FireTimer,this, &ASRGun::Fire, TimeBetweenShots, true, FirstDelay);
+	if(CurrentBulletsInMag > 0)
+	{
+		float FirstDelay = FMath::Max(LastFiredTime + TimeBetweenShots - GetWorld()->TimeSeconds, 0.0f);
+
+		GetWorldTimerManager().SetTimer(FireTimer, this, &ASRGun::Fire, TimeBetweenShots, true, FirstDelay);
+	}
+	else
+	{
+		//*click click* No ammo in clip
+	}
 }
 
 void ASRGun::StopFire()
@@ -149,7 +162,8 @@ void ASRGun::StopFire()
 
 void ASRGun::PlayFireEffects(FVector TracerEnd, FHitResult HitRes)
 {
-	ASRCharacter* Character = Cast<ASRCharacter>(GetOwner());
+	ASRCharacter* MyCharacter = Cast<ASRCharacter>(GetOwner());
+	APawn* MyPawn = Cast<APawn>(GetOwner());
 	
 	if (MuzzleEffect)
 	{
@@ -172,26 +186,72 @@ void ASRGun::PlayFireEffects(FVector TracerEnd, FHitResult HitRes)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedImpactEffect, HitRes.ImpactPoint, HitRes.ImpactNormal.Rotation());
 	}
-	if(FireMontage)
+	if (FireMontage)
 	{
-		if(Character)
+		if(MyCharacter)
 		{
-			Character->PlayAnimMontage(FireMontage, 2.0f, NAME_None);
-			
+			MyCharacter->PlayAnimMontage(FireMontage, 1.0f, NAME_None);	
 		}
 	}
-
-	// Play Camera Shake BP
-	APawn* MyOwner = Cast<APawn>(GetOwner());
-	if(MyOwner)
+	if (FireCameraShake)
 	{
-		APlayerController* PC = Cast<APlayerController>(MyOwner->GetController());
-		if(PC)
+		// Play Camera Shake BP
+		if (MyPawn)
 		{
-			PC->ClientPlayCameraShake(FireCameraShake);
+			APlayerController* PC = Cast<APlayerController>(MyPawn->GetController());
+			if (PC)
+			{
+				PC->ClientPlayCameraShake(FireCameraShake);
+			}
+		}
+	}
+	
+}
+
+void ASRGun::Reload()
+{
+	if (BulletsInReserve > 0)
+	{
+		float Test1 = CurrentBulletsInMag + BulletsInReserve;
+
+		if (BulletsInReserve >= MagSize || Test1 > MagSize)
+		{
+			BulletsInReserve = BulletsInReserve - (MagSize - CurrentBulletsInMag);
+			CurrentBulletsInMag = MagSize;
+		}
+		else
+		{
+			CurrentBulletsInMag = CurrentBulletsInMag + BulletsInReserve;
+			BulletsInReserve = 0.0f;
 		}
 	}
 }
 
+void ASRGun::ReloadStart()
+{
+	if(BulletsInReserve > 0)
+	{
+		ASRCharacter* MyCharacter = Cast<ASRCharacter>(GetOwner());
 
+		MyCharacter->SetGunStatus(EGunStatus::Egs_Reloading);
 
+		if (MyCharacter && ReloadMontage)
+		{
+			MyCharacter->PlayAnimMontage(ReloadMontage, 1.0f, NAME_None);
+		}
+	}
+}
+
+void ASRGun::ReloadEnd()
+{
+	ASRCharacter* MyCharacter = Cast<ASRCharacter>(GetOwner());
+
+	if(MyCharacter->bAimPressed)
+	{
+		MyCharacter->SetGunStatus(EGunStatus::Egs_ADSing);
+	}
+	else
+	{
+		MyCharacter->SetGunStatus(EGunStatus::Egs_Nis);
+	}
+}

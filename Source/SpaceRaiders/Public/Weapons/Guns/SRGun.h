@@ -11,6 +11,7 @@ class UDamageType;
 class UParticleSystem;
 class UCameraShake;
 class UAnimMontage;
+class ASRCharacter;
 
 UCLASS()
 class SPACERAIDERS_API ASRGun : public AActor
@@ -64,7 +65,7 @@ protected:
 	
 	void PlayFireEffects(FVector TracerEnd, FHitResult HitRes);
 
-
+	
 
 	// Values
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
@@ -77,19 +78,26 @@ protected:
 	float TimeBetweenShots;
 
 	//Reload
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	float MagSize;
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	float CurrentBulletsInMag;
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	float BulletsInReserve;
-
+	
 	FTimerHandle FireTimer;
 public:
 	
 	void StartFire();
 	
 	void StopFire();
+
+	void Reload();
+
+	void ReloadStart();
+
+	void ReloadEnd();
+
 	
 	// Montages
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")

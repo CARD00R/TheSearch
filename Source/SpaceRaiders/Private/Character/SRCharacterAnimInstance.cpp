@@ -8,6 +8,7 @@
 #include "public/Character/SRCharacter.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "Weapons/Guns/SRGun.h"
 
 void USRCharacterAnimInstance::NativeInitializeAnimation()
 {
@@ -16,6 +17,7 @@ void USRCharacterAnimInstance::NativeInitializeAnimation()
 		Pawn = TryGetPawnOwner();
 	}	
 }
+
 
 void USRCharacterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 {
@@ -140,4 +142,14 @@ void USRCharacterAnimInstance::CalculateYawPitch(float DeltaTime)
 void USRCharacterAnimInstance::ResetFallHeight()
 {
 	FallHeight = 0;
+}
+
+void USRCharacterAnimInstance::ReloadBullets()
+{
+	Character->CurrentWeapon->Reload();
+}
+
+void USRCharacterAnimInstance::ReloadEnd()
+{
+	Character->CurrentWeapon->ReloadEnd();
 }

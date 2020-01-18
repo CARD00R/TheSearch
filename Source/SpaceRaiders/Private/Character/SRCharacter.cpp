@@ -144,6 +144,7 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction("PrimaryWeapon", IE_Pressed, this, &ASRCharacter::EquipPrimaryWeapon);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASRCharacter::PullTrigger);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASRCharacter::ReleaseTrigger);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASRCharacter::ReloadRequest);
 }
 
 // Input
@@ -1068,8 +1069,14 @@ void ASRCharacter::PullTrigger()
 {
 	if(CurrentWeapon)
 	{
-		CurrentWeapon->StartFire();
-		//PlayAnimMontage(CurrentWeapon->FireMontage, 1.0f, NAME_None);
+		if (!GetGunHolstered())
+		{
+			CurrentWeapon->StartFire();
+			if(GetGunStatus()==EGunStatus::Egs_Reloading)
+			{
+				SetGunStatus(EGunStatus::Egs_ADSing);
+			}
+		}
 	}
 }
 
@@ -1077,38 +1084,50 @@ void ASRCharacter::ReleaseTrigger()
 {
 	if (CurrentWeapon)
 	{
-		CurrentWeapon->StopFire();
+		if (!GetGunHolstered())
+		{
+			CurrentWeapon->StopFire();
+		}
 	}
 }
 
 void ASRCharacter::AimPressed()
 {
-	if (bGunHolstered == false)
+	if (!bGunHolstered)
 	{
-
-		SetGunStatus(EGunStatus::Egs_ADSing);
 		bChangeFOV = true;
-		if(StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
+		bAimPressed = true;
+		if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
 		{
 			SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
 		}
-		if(StanceStatus == EStanceStatus::Ess_Sliding)
+		if (StanceStatus == EStanceStatus::Ess_Sliding)
 		{
 			EndSlide();
 		}
-		
+
 		UE_LOG(LogTemp, Warning, TEXT("AIMING"));
+		
+		if(GetGunStatus() != EGunStatus::Egs_Reloading)
+		{
+			SetGunStatus(EGunStatus::Egs_ADSing);
+			
+		}
 	}
 }
 
 void ASRCharacter::AimReleased()
 {
-	if (bGunHolstered == false)
+	if (!bGunHolstered)
 	{
-
-		SetGunStatus(EGunStatus::Egs_Nis);
 		bChangeFOV = true;
+		bAimPressed = false;
 		UE_LOG(LogTemp, Warning, TEXT("not AIMING"));
+
+		if (GetGunStatus() != EGunStatus::Egs_Reloading)
+		{
+			SetGunStatus(EGunStatus::Egs_Nis);
+		}
 	}
 }
 
@@ -1136,12 +1155,16 @@ void ASRCharacter::ReloadRequest()
 {
 	if (CurrentWeapon)
 	{
-		
+		if(!GetGunHolstered())
+		{
+			Reload();
+		}
 	}
 }
 
 void ASRCharacter::Reload()
 {
+	CurrentWeapon->ReloadStart();
 }
 
 #pragma endregion 

@@ -1048,6 +1048,8 @@ float ASRCharacter::PlayAnimMontage(UAnimMontage * AnimMontage, float InPlayRate
 	if(AnimMontage && AnimInstance)
 	{
 		float const Duration = AnimInstance->Montage_Play(AnimMontage, InPlayRate);
+
+		//UE_LOG(LogTemp, Warning, TEXT("PLAYED MONTAGE"));
 		
 		// Start at a given Section if given
 		if (StartSectionName != NAME_None)
@@ -1067,7 +1069,7 @@ void ASRCharacter::PullTrigger()
 	if(CurrentWeapon)
 	{
 		CurrentWeapon->StartFire();
-		PlayAnimMontage(CurrentWeapon->FireMontage, 2.0f, NAME_None);
+		//PlayAnimMontage(CurrentWeapon->FireMontage, 1.0f, NAME_None);
 	}
 }
 
@@ -1129,6 +1131,19 @@ void ASRCharacter::FreeLookOff()
 {
 	bUseControllerRotationYaw = true;
 }
+
+void ASRCharacter::ReloadRequest()
+{
+	if (CurrentWeapon)
+	{
+		
+	}
+}
+
+void ASRCharacter::Reload()
+{
+}
+
 #pragma endregion 
 
 // Stance, Crouching, Standing, InAir Status

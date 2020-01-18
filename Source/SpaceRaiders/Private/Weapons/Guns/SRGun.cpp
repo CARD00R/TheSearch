@@ -9,6 +9,7 @@
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "SpaceRaiders.h"
 #include "TimerManager.h"
+#include "SRCharacter.h"
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -115,9 +116,20 @@ void ASRGun::Fire()
 		{
 			DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, 1.4f, 1.5);
 		}
-		
+
 		PlayFireEffects(TracerEndPoint, Hit);
 		LastFiredTime = GetWorld()->TimeSeconds;
+
+		// Bullets
+		if(CurrentBulletsInMag>0)
+		{
+			CurrentBulletsInMag -= 1.0f;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("*click* NEED TO RELOAD"));
+			//Reload
+		}
 
 		
 	}
@@ -137,6 +149,8 @@ void ASRGun::StopFire()
 
 void ASRGun::PlayFireEffects(FVector TracerEnd, FHitResult HitRes)
 {
+	ASRCharacter* Character = Cast<ASRCharacter>(GetOwner());
+	
 	if (MuzzleEffect)
 	{
 
@@ -157,6 +171,14 @@ void ASRGun::PlayFireEffects(FVector TracerEnd, FHitResult HitRes)
 	if (SelectedImpactEffect)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedImpactEffect, HitRes.ImpactPoint, HitRes.ImpactNormal.Rotation());
+	}
+	if(FireMontage)
+	{
+		if(Character)
+		{
+			Character->PlayAnimMontage(FireMontage, 2.0f, NAME_None);
+			
+		}
 	}
 
 	// Play Camera Shake BP

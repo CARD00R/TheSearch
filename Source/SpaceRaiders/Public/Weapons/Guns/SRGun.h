@@ -76,6 +76,14 @@ protected:
 	float LastFiredTime;
 	float TimeBetweenShots;
 
+	//Reload
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float MagSize;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float CurrentBulletsInMag;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float BulletsInReserve;
+
 	FTimerHandle FireTimer;
 public:
 	

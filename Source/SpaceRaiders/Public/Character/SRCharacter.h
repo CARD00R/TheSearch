@@ -275,6 +275,8 @@ protected:
 	TSubclassOf<ASRGun> StarterWeaponClass;
 	UPROPERTY(VisibleDefaultsOnly, Category= "Weapon")
 	FName WeaponAttachSocketName = "StarterGunSocket";
+	void ReloadRequest();
+	void Reload();
 	
 	//Input
 	void GlobalKeysInputDisable();
@@ -287,8 +289,7 @@ protected:
 	void OnHealthChanged(USRHealthComponent* HealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
 
-	// Play Montage
-	float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName);
+
 
 public:	
 	// Called every frame
@@ -298,4 +299,6 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Landed(const FHitResult& Hit) override;
 	virtual FVector GetPawnViewLocation() const override;
+	// Play Montage
+	float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName);
 };

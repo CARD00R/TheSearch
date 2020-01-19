@@ -462,20 +462,20 @@ void ASRCharacter::LookUp(float value)
 	{
 		if (Pitch != 60 && Pitch != -60)
 		{
-			AddControllerPitchInput(value);
+			AddControllerPitchInput(value*0.25f);
 		}
 		else if (Pitch != 60)
 		{
 			if (value < 0)
 			{
-				AddControllerPitchInput(value);
+				AddControllerPitchInput(value*0.25f);
 			}
 		}
 		else if (Pitch != -60)
 		{
 			if (value > 0)
 			{
-				AddControllerPitchInput(value);
+				AddControllerPitchInput(value*0.25f);
 			}
 		}
 	}
@@ -518,7 +518,7 @@ void ASRCharacter::Turn(float value)
 
 			}
 		}*/
-		AddControllerYawInput(value*valueMultiplier);
+		AddControllerYawInput(value*valueMultiplier*0.5f);
 	}
 }
 
@@ -713,6 +713,8 @@ void ASRCharacter::StartJump()
 		SetStanceStatus(EStanceStatus::Ess_InAir);
 		SetInAirStatus(EInAirStatus::Eias_Jumping);
 		Jump();
+		SlideRequest = true;
+		SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
 
 	}
 	else

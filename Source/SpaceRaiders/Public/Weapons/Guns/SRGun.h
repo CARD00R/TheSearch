@@ -116,6 +116,8 @@ public:
 	UAnimMontage* PickUpGunMontage;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	UAnimMontage* PickUpAmmoMontage;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UAnimMontage* HolsterMontage;
 
 
 	void PickedupCollisionPreset();
@@ -123,6 +125,7 @@ public:
 	void DroppedCollisionPreset();
 	void PlayPickUpGunMontage();
 	void PlayPickUpAmmoMontage();
+	void PlayHolsterMontage();
 	
 	UFUNCTION()
 	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);

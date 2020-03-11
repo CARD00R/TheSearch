@@ -264,6 +264,7 @@ protected:
 
 	void AimReleased();
 	void EquipPrimaryWeapon();
+	void EquipSecondaryWeapon();
 	float ADSCameraFOV = 60.0f;
 	float WhipCameraFOV = 90.0f;
 	void SetCameraFOV(float DeltaTime);
@@ -275,12 +276,17 @@ protected:
 	TSubclassOf<ASRGun> StarterWeaponClass;
 	UPROPERTY(VisibleDefaultsOnly, Category= "Weapon")
 	FName WeaponAttachSocketName = "StarterGunSocket";
+	FName WeaponHolsterSocketName = "HolsterPistolSocket";
 	void ReloadRequest();
 	void Reload();
 	void DropWeapon();
 	void PickUpWeapon(ASRGun* WeaponToPickUp);
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
 	ASRGun* ProximityGunPickUp;
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
+	ASRGun* PrimaryWeapon;
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
+	ASRGun* SecondaryWeapon;
 	
 	//Input
 	void GlobalKeysInputDisable();

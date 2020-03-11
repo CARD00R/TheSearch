@@ -1148,9 +1148,24 @@ void ASRCharacter::AimReleased()
 
 void ASRCharacter::EquipPrimaryWeapon()
 {
-	if(EquippedWeapon)
+	if(PrimaryWeapon && EquippedWeapon != PrimaryWeapon )
 	{
-		bGunHolstered = !bGunHolstered;
+		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+		EquippedWeapon->PlayHolsterMontage();
+		EquippedWeapon = PrimaryWeapon;
+
+
+		
+		//bGunHolstered = !bGunHolstered;
+	}
+}
+void ASRCharacter::EquipSecondaryWeapon()
+{
+	if (SecondaryWeapon && EquippedWeapon != SecondaryWeapon)
+	{
+		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+		EquippedWeapon->PlayHolsterMontage();
+		EquippedWeapon = SecondaryWeapon;	
 	}
 }
 
@@ -1193,28 +1208,115 @@ void ASRCharacter::DropWeapon()
 		{
 			AimReleased();
 		}
-		bGunHolstered = false;
+		if(EquippedWeapon == PrimaryWeapon)
+		{
+			
+			EquippedWeapon->DroppedCollisionPreset();
+			EquippedWeapon->SetOwner(nullptr);
+			EquippedWeapon->SetPickedUpState(false);
+			EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			EquippedWeapon = nullptr;
+			PrimaryWeapon = nullptr;
+			
+			if (SecondaryWeapon)
+			{
+				EquippedWeapon = SecondaryWeapon;
+			}
+			else
+			{
+				bGunHolstered = true;
+			}
+		}
+		else if(EquippedWeapon == SecondaryWeapon)
+		{
+			
+			EquippedWeapon->DroppedCollisionPreset();
+			EquippedWeapon->SetOwner(nullptr);
+			EquippedWeapon->SetPickedUpState(false);
+			EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			EquippedWeapon = nullptr;
+			SecondaryWeapon = nullptr;
+			
+			if (PrimaryWeapon)
+			{
+				EquippedWeapon = PrimaryWeapon;
+			}
+			else
+			{
+				bGunHolstered = true;
+			}
+		}
+		else
+		{
+			bGunHolstered = true;
+		}
+
+
 		EquippedWeapon->DroppedCollisionPreset();
 		EquippedWeapon->SetOwner(nullptr);
 		EquippedWeapon->SetPickedUpState(false);
-
 		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		
-		
 		EquippedWeapon = nullptr;
-
 	}
 }
 void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
 {
 	//Spawn a default weapon
-	EquippedWeapon = WeaponToPickUp;
-	EquippedWeapon->PickedupCollisionPreset();
-	EquippedWeapon->SetPickedUpState(true);
-	EquippedWeapon->SetOwner(this);
+	bGunHolstered = false;
 	
-	EquippedWeapon->PlayPickUpGunMontage();
-	EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+	if(PrimaryWeapon)
+	{
+		if(SecondaryWeapon)
+		{
+			if(EquippedWeapon == PrimaryWeapon)
+			{
+				PrimaryWeapon = WeaponToPickUp;
+				DropWeapon();
+				EquippedWeapon = PrimaryWeapon;
+				EquippedWeapon->PickedupCollisionPreset();
+				EquippedWeapon->SetPickedUpState(true);
+				EquippedWeapon->SetOwner(this);
+				EquippedWeapon->PlayPickUpGunMontage();
+				EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+			}
+			else if (EquippedWeapon == SecondaryWeapon)
+			{
+				SecondaryWeapon = WeaponToPickUp;
+				DropWeapon();
+				EquippedWeapon = SecondaryWeapon;
+				EquippedWeapon->PickedupCollisionPreset();
+				EquippedWeapon->SetPickedUpState(true);
+				EquippedWeapon->SetOwner(this);
+				EquippedWeapon->PlayPickUpGunMontage();
+				EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("You current have an issue in your PickUpWeapon Method"));		
+			}
+		}
+		else
+		{
+			SecondaryWeapon = WeaponToPickUp;
+			SecondaryWeapon->PickedupCollisionPreset();
+			SecondaryWeapon->SetPickedUpState(true);
+			SecondaryWeapon->SetOwner(this);
+			SecondaryWeapon->PlayPickUpAmmoMontage();
+			SecondaryWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+		}
+	}
+	else
+	{
+		PrimaryWeapon = WeaponToPickUp;
+		EquippedWeapon = PrimaryWeapon;
+		EquippedWeapon->PickedupCollisionPreset();
+		EquippedWeapon->SetPickedUpState(true);
+		EquippedWeapon->SetOwner(this);
+		EquippedWeapon->PlayPickUpGunMontage();
+		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+	}
+
+	
 	
 }
 

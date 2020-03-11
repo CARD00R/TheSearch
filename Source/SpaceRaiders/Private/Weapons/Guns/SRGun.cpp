@@ -265,6 +265,7 @@ void ASRGun::ReloadStart()
 	}
 }
 
+
 void ASRGun::ReloadEnd()
 {
 	ASRCharacter* MyCharacter = Cast<ASRCharacter>(GetOwner());
@@ -293,11 +294,53 @@ void ASRGun::DroppedCollisionPreset()
 	MeshComp->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 
 }
+void ASRGun::PlayPickUpGunMontage()
+{
+	ASRCharacter* MyCharacter = Cast<ASRCharacter>(GetOwner());
+
+	if (MyCharacter)
+	{
+		if(MyCharacter->GetStandingMovementStatus()==EStandingMovementStatus::Esms_Sprinting)
+		{
+			MyCharacter->PlayAnimMontage(PickUpGunMontage, 2.0f, NAME_None);
+		}
+		else if(MyCharacter->GetStandingMovementStatus() == EStandingMovementStatus::Esms_Idling)
+		{
+			MyCharacter->PlayAnimMontage(PickUpGunMontage, 1.0f, NAME_None);
+		}
+		else
+		{
+			MyCharacter->PlayAnimMontage(PickUpGunMontage, 1.4f, NAME_None);
+		}
+
+	}
+}
+void ASRGun::PlayPickUpAmmoMontage()
+{
+	ASRCharacter* MyCharacter = Cast<ASRCharacter>(GetOwner());
+
+	if (MyCharacter)
+	{
+		if (MyCharacter->GetStandingMovementStatus() == EStandingMovementStatus::Esms_Sprinting)
+		{
+			MyCharacter->PlayAnimMontage(PickUpAmmoMontage, 2.0f, NAME_None);
+		}
+		else if (MyCharacter->GetStandingMovementStatus() == EStandingMovementStatus::Esms_Idling)
+		{
+			MyCharacter->PlayAnimMontage(PickUpAmmoMontage, 1.0f, NAME_None);
+		}
+		else
+		{
+			MyCharacter->PlayAnimMontage(PickUpAmmoMontage, 1.4f, NAME_None);
+		}
+
+	}
+}
 void ASRGun::PickedupCollisionPreset()
 {
+	MeshComp->SetSimulatePhysics(false);
 	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MeshComp->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	MeshComp->SetSimulatePhysics(false);
 	PickUpCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PickUpCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 }

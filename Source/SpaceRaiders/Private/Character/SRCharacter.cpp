@@ -147,6 +147,7 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASRCharacter::ReleaseTrigger);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASRCharacter::ReloadRequest);
 	PlayerInputComponent->BindAction("DropWeapon", IE_Pressed, this, &ASRCharacter::DropWeapon);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ASRCharacter::InteractWith);
 }
 
 // Input
@@ -542,6 +543,14 @@ void ASRCharacter::GlobalMouseInputDisable()
 void ASRCharacter::GlobalMouseInputEnable()
 {
 	bGlobalMouseInput = true;
+}
+void ASRCharacter::InteractWith()
+{
+	if(ProximityGunPickUp)
+	{
+		PickUpWeapon(ProximityGunPickUp);
+	}
+	
 }
 #pragma endregion
 
@@ -1196,12 +1205,17 @@ void ASRCharacter::DropWeapon()
 
 	}
 }
-void ASRCharacter::PickUpWeapon(ASRGun WeaponToPickUp)
+void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
 {
 	//Spawn a default weapon
-
+	EquippedWeapon = WeaponToPickUp;
 	EquippedWeapon->PickedupCollisionPreset();
 	EquippedWeapon->SetPickedUpState(true);
+	EquippedWeapon->SetOwner(this);
+	
+	EquippedWeapon->PlayPickUpGunMontage();
+	EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+	
 }
 
 #pragma endregion 

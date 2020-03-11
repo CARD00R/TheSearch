@@ -278,7 +278,7 @@ protected:
 	void ReloadRequest();
 	void Reload();
 	void DropWeapon();
-	void PickUpWeapon(ASRGun WeaponToPickUp);
+	void PickUpWeapon(ASRGun* WeaponToPickUp);
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
 	ASRGun* ProximityGunPickUp;
 	

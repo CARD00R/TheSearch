@@ -77,19 +77,6 @@ ASRCharacter::ASRCharacter()
 void ASRCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	EquippedWeapon = GetWorld()->SpawnActor <ASRGun>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-
-	if (EquippedWeapon)
-	{
-		EquippedWeapon->SetOwner(this);
-		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
-	}
-
 	OwningHealthComp->OnHealthChanged.AddDynamic(this, &ASRCharacter::OnHealthChanged);
 }
 
@@ -148,6 +135,8 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASRCharacter::ReloadRequest);
 	PlayerInputComponent->BindAction("DropWeapon", IE_Pressed, this, &ASRCharacter::DropWeapon);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ASRCharacter::InteractWith);
+	PlayerInputComponent->BindAction("SecondaryWeapon", IE_Pressed, this, &ASRCharacter::EquipSecondaryWeapon);
+
 }
 
 // Input
@@ -1078,6 +1067,62 @@ void ASRCharacter::SetProximityGunPickUp(ASRGun* Gun)
 {
 	ProximityGunPickUp = Gun;
 }
+void ASRCharacter::AnimNotifyUnHolster()
+{
+	if(EquippedWeapon)
+	{
+		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+	}
+
+}
+void ASRCharacter::AnimNotifyPickUpGun()
+{
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+	}
+
+}
+void ASRCharacter::AnimNotifyHolsterSecondaryGun()
+{
+	if (SecondaryWeapon)
+	{
+		SecondaryWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+	}
+}
+void ASRCharacter::AnimNotifyHolsterPrimaryGun()
+{
+	if (PrimaryWeapon)
+	{
+		PrimaryWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+	}
+}
+void ASRCharacter::AnimNotifyHolster()
+{
+	if (EquippedWeapon && (PrimaryWeapon || SecondaryWeapon))
+	{
+		if (EquippedWeapon == PrimaryWeapon)
+		{
+			PrimaryWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+			if(SecondaryWeapon)
+			{
+				EquippedWeapon = SecondaryWeapon;
+			}
+		}
+		else if (EquippedWeapon == SecondaryWeapon)
+		{
+			SecondaryWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+			if(PrimaryWeapon)
+			{
+				EquippedWeapon = PrimaryWeapon;
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("NOT WORKING"));
+	}
+}
 #pragma endregion 
 
 // Weapon & Aim
@@ -1150,9 +1195,10 @@ void ASRCharacter::EquipPrimaryWeapon()
 {
 	if(PrimaryWeapon && EquippedWeapon != PrimaryWeapon )
 	{
-		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+		//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
 		EquippedWeapon->PlayHolsterMontage();
-		EquippedWeapon = PrimaryWeapon;
+		
+		//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
 
 
 		
@@ -1163,9 +1209,10 @@ void ASRCharacter::EquipSecondaryWeapon()
 {
 	if (SecondaryWeapon && EquippedWeapon != SecondaryWeapon)
 	{
-		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+		//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
 		EquippedWeapon->PlayHolsterMontage();
-		EquippedWeapon = SecondaryWeapon;	
+		//EquippedWeapon = SecondaryWeapon;
+		//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
 	}
 }
 
@@ -1215,12 +1262,15 @@ void ASRCharacter::DropWeapon()
 			EquippedWeapon->SetOwner(nullptr);
 			EquippedWeapon->SetPickedUpState(false);
 			EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-			EquippedWeapon = nullptr;
+			//EquippedWeapon = nullptr;
 			PrimaryWeapon = nullptr;
+			UE_LOG(LogTemp, Error, TEXT("You have PW equipped and wish to drop it"));
 			
 			if (SecondaryWeapon)
 			{
 				EquippedWeapon = SecondaryWeapon;
+				EquippedWeapon->PlayHolsterMontage();
+				//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
 			}
 			else
 			{
@@ -1234,12 +1284,15 @@ void ASRCharacter::DropWeapon()
 			EquippedWeapon->SetOwner(nullptr);
 			EquippedWeapon->SetPickedUpState(false);
 			EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-			EquippedWeapon = nullptr;
+			//EquippedWeapon = nullptr;
 			SecondaryWeapon = nullptr;
+			UE_LOG(LogTemp, Error, TEXT("You have SW equipped and wish to drop it"));
 			
 			if (PrimaryWeapon)
 			{
 				EquippedWeapon = PrimaryWeapon;
+				EquippedWeapon->PlayHolsterMontage();
+				//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
 			}
 			else
 			{
@@ -1252,11 +1305,11 @@ void ASRCharacter::DropWeapon()
 		}
 
 
-		EquippedWeapon->DroppedCollisionPreset();
+		/*EquippedWeapon->DroppedCollisionPreset();
 		EquippedWeapon->SetOwner(nullptr);
 		EquippedWeapon->SetPickedUpState(false);
 		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		EquippedWeapon = nullptr;
+		EquippedWeapon = nullptr;*/
 	}
 }
 void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
@@ -1277,7 +1330,7 @@ void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
 				EquippedWeapon->SetPickedUpState(true);
 				EquippedWeapon->SetOwner(this);
 				EquippedWeapon->PlayPickUpGunMontage();
-				EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+				//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
 			}
 			else if (EquippedWeapon == SecondaryWeapon)
 			{
@@ -1288,7 +1341,7 @@ void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
 				EquippedWeapon->SetPickedUpState(true);
 				EquippedWeapon->SetOwner(this);
 				EquippedWeapon->PlayPickUpGunMontage();
-				EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+				//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
 			}
 			else
 			{
@@ -1302,7 +1355,7 @@ void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
 			SecondaryWeapon->SetPickedUpState(true);
 			SecondaryWeapon->SetOwner(this);
 			SecondaryWeapon->PlayPickUpAmmoMontage();
-			SecondaryWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+			//SecondaryWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
 		}
 	}
 	else
@@ -1313,7 +1366,7 @@ void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
 		EquippedWeapon->SetPickedUpState(true);
 		EquippedWeapon->SetOwner(this);
 		EquippedWeapon->PlayPickUpGunMontage();
-		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+		//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
 	}
 
 	

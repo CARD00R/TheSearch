@@ -103,6 +103,7 @@ public:
 
 	void ReloadEnd();
 
+	
 
 	//States
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")

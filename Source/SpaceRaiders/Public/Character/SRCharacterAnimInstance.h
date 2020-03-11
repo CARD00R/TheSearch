@@ -102,6 +102,17 @@ protected:
 	void ReloadBullets();
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void ReloadEnd();
+	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void PullingOutPistol();
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void HolsteringPistol();
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void PickingUpPistol();
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void HolsterSecondaryPistol();
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void HolsterPrimaryPistol();
 
 	UFUNCTION(BlueprintCallable, Category = "Animation Properties")
 	void UpdateAnimationProperties(float DeltaTime);

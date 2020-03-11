@@ -317,4 +317,12 @@ public:
 	ASRGun* EquippedWeapon;
 	void SetProximityGunPickUp(ASRGun* Gun);
 	bool bAimPressed = false;
+
+	// Anim Notify
+	void AnimNotifyUnHolster();
+	void AnimNotifyPickUpGun();
+	void AnimNotifyHolsterSecondaryGun();
+	void AnimNotifyHolsterPrimaryGun();
+	void AnimNotifyHolster();
+	
 };

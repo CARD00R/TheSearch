@@ -153,3 +153,25 @@ void USRCharacterAnimInstance::ReloadEnd()
 {
 	Character->EquippedWeapon->ReloadEnd();
 }
+
+void USRCharacterAnimInstance::PullingOutPistol()
+{
+	Character->AnimNotifyUnHolster();
+}
+void USRCharacterAnimInstance::HolsteringPistol()
+{
+	Character->AnimNotifyHolster();
+}
+void USRCharacterAnimInstance::PickingUpPistol()
+{
+	Character->AnimNotifyPickUpGun();
+}
+
+void USRCharacterAnimInstance::HolsterSecondaryPistol()
+{
+	Character->AnimNotifyHolsterSecondaryGun();
+}
+void USRCharacterAnimInstance::HolsterPrimaryPistol()
+{
+	Character->AnimNotifyHolsterPrimaryGun();
+}

@@ -327,11 +327,11 @@ void ASRGun::PlayPickUpAmmoMontage()
 		}
 		else if (MyCharacter->GetStandingMovementStatus() == EStandingMovementStatus::Esms_Idling)
 		{
-			MyCharacter->PlayAnimMontage(PickUpAmmoMontage, 1.0f, NAME_None);
+			MyCharacter->PlayAnimMontage(PickUpAmmoMontage, 2.0f, NAME_None);
 		}
 		else
 		{
-			MyCharacter->PlayAnimMontage(PickUpAmmoMontage, 1.4f, NAME_None);
+			MyCharacter->PlayAnimMontage(PickUpAmmoMontage, 2.0f, NAME_None);
 		}
 
 	}
@@ -344,15 +344,15 @@ void ASRGun::PlayHolsterMontage()
 	{
 		if (MyCharacter->GetStandingMovementStatus() == EStandingMovementStatus::Esms_Sprinting)
 		{
-			MyCharacter->PlayAnimMontage(HolsterMontage, -2.0f, NAME_None);
+			MyCharacter->PlayAnimMontage(HolsterMontage, -3.0f, NAME_None);
 		}
 		else if (MyCharacter->GetStandingMovementStatus() == EStandingMovementStatus::Esms_Idling)
 		{
-			MyCharacter->PlayAnimMontage(HolsterMontage, -1.0f, NAME_None);
+			MyCharacter->PlayAnimMontage(HolsterMontage, -3.0f, NAME_None);
 		}
 		else
 		{
-			MyCharacter->PlayAnimMontage(HolsterMontage, -1.4f, NAME_None);
+			MyCharacter->PlayAnimMontage(HolsterMontage, -3.0f, NAME_None);
 		}
 
 	}

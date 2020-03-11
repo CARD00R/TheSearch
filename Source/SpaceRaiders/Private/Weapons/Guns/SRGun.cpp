@@ -27,6 +27,7 @@ ASRGun::ASRGun()
 
 	MuzzleSocketName = "MuzzleSocket";
 	TracerTargetName = "Target";
+	IsPickedUp = true;
 }
 
 void ASRGun::BeginPlay()

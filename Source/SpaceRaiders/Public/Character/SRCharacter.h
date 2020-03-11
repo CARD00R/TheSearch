@@ -277,6 +277,8 @@ protected:
 	FName WeaponAttachSocketName = "StarterGunSocket";
 	void ReloadRequest();
 	void Reload();
+	void DropWeapon();
+	void PickUpWeapon(ASRGun WeaponToPickUp);
 	
 	//Input
 	void GlobalKeysInputDisable();
@@ -299,7 +301,7 @@ public:
 	// Play Montage
 	float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName);
 	// Weapon
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	ASRGun* CurrentWeapon;
+	UPROPERTY(VisibleAnywhere, Category = "Weapon")
+	ASRGun* EquippedWeapon;	
 	bool bAimPressed = false;
 };

@@ -78,15 +78,16 @@ void ASRCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//Spawn a default weapon
+
+
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	CurrentWeapon = GetWorld()->SpawnActor <ASRGun>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-	
-	if(CurrentWeapon)
+	EquippedWeapon = GetWorld()->SpawnActor <ASRGun>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+
+	if (EquippedWeapon)
 	{
-		CurrentWeapon->SetOwner(this);
-		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale,WeaponAttachSocketName);
+		EquippedWeapon->SetOwner(this);
+		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
 	}
 
 	OwningHealthComp->OnHealthChanged.AddDynamic(this, &ASRCharacter::OnHealthChanged);
@@ -1069,11 +1070,11 @@ float ASRCharacter::PlayAnimMontage(UAnimMontage * AnimMontage, float InPlayRate
 #pragma region Weapons & Aim
 void ASRCharacter::PullTrigger()
 {
-	if(CurrentWeapon)
+	if(EquippedWeapon)
 	{
 		if (!GetGunHolstered())
 		{
-			CurrentWeapon->StartFire();
+			EquippedWeapon->StartFire();
 			if(GetGunStatus()==EGunStatus::Egs_Reloading)
 			{
 				SetGunStatus(EGunStatus::Egs_ADSing);
@@ -1084,11 +1085,11 @@ void ASRCharacter::PullTrigger()
 
 void ASRCharacter::ReleaseTrigger()
 {
-	if (CurrentWeapon)
+	if (EquippedWeapon)
 	{
 		if (!GetGunHolstered())
 		{
-			CurrentWeapon->StopFire();
+			EquippedWeapon->StopFire();
 		}
 	}
 }
@@ -1107,9 +1108,7 @@ void ASRCharacter::AimPressed()
 		{
 			EndSlide();
 		}
-
-		UE_LOG(LogTemp, Warning, TEXT("AIMING"));
-		
+	
 		if(GetGunStatus() != EGunStatus::Egs_Reloading)
 		{
 			SetGunStatus(EGunStatus::Egs_ADSing);
@@ -1135,7 +1134,10 @@ void ASRCharacter::AimReleased()
 
 void ASRCharacter::EquipPrimaryWeapon()
 {
-	bGunHolstered = !bGunHolstered;
+	if(EquippedWeapon)
+	{
+		bGunHolstered = !bGunHolstered;
+	}
 }
 
 bool ASRCharacter::GetGunHolstered()
@@ -1155,7 +1157,7 @@ void ASRCharacter::FreeLookOff()
 
 void ASRCharacter::ReloadRequest()
 {
-	if (CurrentWeapon)
+	if (EquippedWeapon)
 	{
 		if(!GetGunHolstered())
 		{
@@ -1166,7 +1168,19 @@ void ASRCharacter::ReloadRequest()
 
 void ASRCharacter::Reload()
 {
-	CurrentWeapon->ReloadStart();
+	EquippedWeapon->ReloadStart();
+}
+
+void ASRCharacter::DropWeapon()
+{
+	EquippedWeapon = nullptr;
+	bGunHolstered = false;
+}
+void ASRCharacter::PickUpWeapon(ASRGun WeaponToPickUp)
+{
+	//Spawn a default weapon
+
+
 }
 
 #pragma endregion 

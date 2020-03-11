@@ -65,7 +65,9 @@ protected:
 	
 	void PlayFireEffects(FVector TracerEnd, FHitResult HitRes);
 
-	
+	//States
+	UPROPERTY(VisibleAnwywhere, Category = "Weapon")
+	bool IsPickedUp;
 
 	// Values
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
@@ -84,6 +86,8 @@ protected:
 	float CurrentBulletsInMag;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	float BulletsInReserve;
+
+	
 	
 	FTimerHandle FireTimer;
 public:

@@ -12,6 +12,7 @@ class UParticleSystem;
 class UCameraShake;
 class UAnimMontage;
 class ASRCharacter;
+class USphereComponent;
 
 UCLASS()
 class SPACERAIDERS_API ASRGun : public AActor
@@ -25,9 +26,13 @@ public:
 protected:
 	
 	virtual void BeginPlay() override;
-	
+
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	USkeletalMeshComponent* MeshComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USphereComponent* PickUpCollision;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Weapon")
 	TSubclassOf<UDamageType> DamageType;
@@ -65,9 +70,6 @@ protected:
 	
 	void PlayFireEffects(FVector TracerEnd, FHitResult HitRes);
 
-	//States
-	UPROPERTY(VisibleAnwywhere, Category = "Weapon")
-	bool IsPickedUp;
 
 	// Values
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
@@ -86,7 +88,6 @@ protected:
 	float CurrentBulletsInMag;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	float BulletsInReserve;
-
 	
 	
 	FTimerHandle FireTimer;
@@ -102,10 +103,25 @@ public:
 
 	void ReloadEnd();
 
-	
+
+	//States
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
+	bool IsPickedUp;
 	// Montages
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	UAnimMontage* FireMontage;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	UAnimMontage* ReloadMontage;
+
+
+	void PickedupCollisionPreset();
+	void SetPickedUpState(bool NewIsPickedUp);
+	void DroppedCollisionPreset();
+	
+	
+	UFUNCTION()
+	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	UFUNCTION()
+	virtual void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
 };

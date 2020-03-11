@@ -279,12 +279,17 @@ protected:
 	void Reload();
 	void DropWeapon();
 	void PickUpWeapon(ASRGun WeaponToPickUp);
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
+	ASRGun* ProximityGunPickUp;
 	
 	//Input
 	void GlobalKeysInputDisable();
 	void GlobalKeysInputEnable();
 	void GlobalMouseInputDisable();
 	void GlobalMouseInputEnable();
+
+	// Interact
+	void InteractWith();
 
 	// Health
 	UFUNCTION()
@@ -300,8 +305,10 @@ public:
 	virtual FVector GetPawnViewLocation() const override;
 	// Play Montage
 	float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName);
+	
 	// Weapon
-	UPROPERTY(VisibleAnywhere, Category = "Weapon")
-	ASRGun* EquippedWeapon;	
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
+	ASRGun* EquippedWeapon;
+	void SetProximityGunPickUp(ASRGun* Gun);
 	bool bAimPressed = false;
 };

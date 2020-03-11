@@ -146,10 +146,10 @@ void USRCharacterAnimInstance::ResetFallHeight()
 
 void USRCharacterAnimInstance::ReloadBullets()
 {
-	Character->CurrentWeapon->Reload();
+	Character->EquippedWeapon->Reload();
 }
 
 void USRCharacterAnimInstance::ReloadEnd()
 {
-	Character->CurrentWeapon->ReloadEnd();
+	Character->EquippedWeapon->ReloadEnd();
 }

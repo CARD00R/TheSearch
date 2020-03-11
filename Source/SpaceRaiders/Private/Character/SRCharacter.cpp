@@ -146,6 +146,7 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASRCharacter::PullTrigger);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASRCharacter::ReleaseTrigger);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASRCharacter::ReloadRequest);
+	PlayerInputComponent->BindAction("DropWeapon", IE_Pressed, this, &ASRCharacter::DropWeapon);
 }
 
 // Input
@@ -1064,6 +1065,10 @@ float ASRCharacter::PlayAnimMontage(UAnimMontage * AnimMontage, float InPlayRate
 	}
 	return 0.f;
 }
+void ASRCharacter::SetProximityGunPickUp(ASRGun* Gun)
+{
+	ProximityGunPickUp = Gun;
+}
 #pragma endregion 
 
 // Weapon & Aim
@@ -1173,14 +1178,30 @@ void ASRCharacter::Reload()
 
 void ASRCharacter::DropWeapon()
 {
-	EquippedWeapon = nullptr;
-	bGunHolstered = false;
+	if (EquippedWeapon)
+	{
+		if(bAimPressed)
+		{
+			AimReleased();
+		}
+		bGunHolstered = false;
+		EquippedWeapon->DroppedCollisionPreset();
+		EquippedWeapon->SetOwner(nullptr);
+		EquippedWeapon->SetPickedUpState(false);
+
+		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		
+		
+		EquippedWeapon = nullptr;
+
+	}
 }
 void ASRCharacter::PickUpWeapon(ASRGun WeaponToPickUp)
 {
 	//Spawn a default weapon
 
-
+	EquippedWeapon->PickedupCollisionPreset();
+	EquippedWeapon->SetPickedUpState(true);
 }
 
 #pragma endregion 

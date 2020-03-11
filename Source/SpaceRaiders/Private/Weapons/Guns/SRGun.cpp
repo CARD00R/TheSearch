@@ -10,6 +10,8 @@
 #include "SpaceRaiders.h"
 #include "TimerManager.h"
 #include "SRCharacter.h"
+#include "Components/SphereComponent.h"
+
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -25,6 +27,12 @@ ASRGun::ASRGun()
 	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComp"));
 	RootComponent = MeshComp;
 
+	// Pick Up Coll
+	PickUpCollision = CreateDefaultSubobject<USphereComponent>(TEXT("PickUpCollision"));
+	PickUpCollision->SetupAttachment(RootComponent);
+	PickUpCollision->SetSphereRadius(180.0f);
+	
+	
 	MuzzleSocketName = "MuzzleSocket";
 	TracerTargetName = "Target";
 	IsPickedUp = true;
@@ -34,7 +42,21 @@ void ASRGun::BeginPlay()
 {
 	Super::BeginPlay();
 
-	TimeBetweenShots = 60 / RateOfFire;	
+	TimeBetweenShots = 60 / RateOfFire;
+
+	// Pick Up Coll
+	PickUpCollision->OnComponentBeginOverlap.AddDynamic(this, &ASRGun::OnOverlapBegin);
+	PickUpCollision->OnComponentEndOverlap.AddDynamic(this, &ASRGun::OnOverlapEnd);
+
+
+	if(IsPickedUp)
+	{
+		PickedupCollisionPreset();
+	}
+	else
+	{
+		DroppedCollisionPreset();
+	}
 }
 
 void ASRGun::Fire()
@@ -116,7 +138,7 @@ void ASRGun::Fire()
 
 			if (DebugWeaponDrawing > 0)
 			{
-				DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, 1.4f, 1.5);
+				//DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, 1.4f, 1.5);
 			}
 
 			PlayFireEffects(TracerEndPoint, Hit);
@@ -255,4 +277,44 @@ void ASRGun::ReloadEnd()
 	{
 		MyCharacter->SetGunStatus(EGunStatus::Egs_Nis);
 	}
+}
+
+void ASRGun::DroppedCollisionPreset()
+{
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	MeshComp->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+	MeshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	MeshComp->SetSimulatePhysics(true);
+	
+	PickUpCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	PickUpCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	PickUpCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	PickUpCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+
+}
+void ASRGun::PickedupCollisionPreset()
+{
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	MeshComp->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	MeshComp->SetSimulatePhysics(false);
+	PickUpCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	PickUpCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+}
+
+void ASRGun::SetPickedUpState(bool NewIsPickedUp)
+{
+	IsPickedUp = NewIsPickedUp;
+}
+
+void ASRGun::OnOverlapBegin(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	ASRCharacter* myCharacter = Cast<ASRCharacter>(OtherActor);
+	myCharacter->SetProximityGunPickUp(this);
+}
+
+void ASRGun::OnOverlapEnd(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex)
+{
+	ASRCharacter* myCharacter = Cast<ASRCharacter>(OtherActor);
+	myCharacter->SetProximityGunPickUp(nullptr);
 }

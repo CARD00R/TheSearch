@@ -71,6 +71,12 @@ ASRCharacter::ASRCharacter()
 	// Collision
 	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_GUN, ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+
+	// Aim Released
+	bGunHolstered = true;
+	SetGunStatus(EGunStatus::Egs_Nis);
+	//bChangeFOV = true;
+	//bAimPressed = false;
 }
 
 // Called when the game starts or when spawned
@@ -1357,6 +1363,14 @@ void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
 			SecondaryWeapon->PlayPickUpAmmoMontage();
 			//SecondaryWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
 		}
+	}
+	else if(SecondaryWeapon)
+	{
+		PrimaryWeapon = WeaponToPickUp;
+		PrimaryWeapon->PickedupCollisionPreset();
+		PrimaryWeapon->SetPickedUpState(true);
+		PrimaryWeapon->SetOwner(this);
+		PrimaryWeapon->PlayPickUpAmmoMontage();
 	}
 	else
 	{

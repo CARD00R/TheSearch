@@ -111,11 +111,11 @@ public:
 	   	
 	// Construction Variables
 	//Mesh
-	FVector MeshInitialiseLocation = FVector(-5, 0, -88);
-	FRotator MeshInitialiseRotation = FRotator(0, -90, 0);
+	FVector MeshInitialiseLocation = FVector(-5, 0, -91);
+	FRotator MeshInitialiseRotation = FRotator(0, -85, 0);
 	//SpringArmComponent
 	FVector SpringArmInitialiseLocation = FVector(-14, 2, 70);
-	FVector SpringArmInitialiseSocketOffset = FVector(0, 55, 30);
+	FVector SpringArmInitialiseSocketOffset = FVector(0, 70, 30);
 
 
 	//InAir Status
@@ -155,6 +155,9 @@ public:
 	void SetInAirStatus(EInAirStatus Status);
 	bool GetGunHolstered();
 	bool GetShouldHardLand();
+	bool GetShouldMiniLand();
+	void SetShouldMiniLand(bool ShouldMiniLand);
+	
 	//Capsule
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	bool bCheckCapsuleProperties = false;
@@ -256,6 +259,11 @@ protected:
 	float HardLandDelay = 1.7f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Fall")
 	float SoftLandDelay = 0.8f;
+	FTimerHandle MiniLandTimer;
+	void JustMiniLandedRecover();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fall")
+	bool bShouldMiniLand = false;
+
 
 	//Aim/Weapons
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")

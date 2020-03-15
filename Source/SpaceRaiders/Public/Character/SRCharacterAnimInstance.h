@@ -59,6 +59,9 @@ protected:
 	float FallHeightFlailLimit = 700;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
+	float FallHeightMiniLandLimit = 450;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
 	float FallHeight;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
@@ -69,6 +72,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
 	bool bShouldHardLand;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
+	bool bShouldMiniLand;
 
 	bool bShouldResetFallHeight = false;
 

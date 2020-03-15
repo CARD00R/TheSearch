@@ -217,6 +217,11 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 			{
 				SetStanceStatus(EStanceStatus::Ess_Crouching);
 			}
+			if(bShouldMiniLand)
+			{
+				SetCharacterMovementSpeed(300.0f);
+				GetWorld()->GetTimerManager().SetTimer(MiniLandTimer, this, &ASRCharacter::JustMiniLandedRecover, 0.4f, false);			
+			}
 		}
 		else
 		{
@@ -250,6 +255,10 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 
 	SetInAirStatus(EInAirStatus::Eias_Nis);
 }
+void ASRCharacter::JustMiniLandedRecover()
+{
+	SetCharacterMovementSpeed(JogSpeed);
+}
 
 void ASRCharacter::MoveForward(float value)
 {
@@ -264,17 +273,17 @@ void ASRCharacter::MoveForward(float value)
 			//...then player is moving forward
 			bIsMovingForward = true;
 
-			if (!bGunHolstered)
-			{
-				//SetCharacterMovementSpeed(GetCharacterMovementSpeed()*0.85);
-			}
 			//...and player is standing...
 			if (StanceStatus == EStanceStatus::Ess_Standing)
 			{
 				// and Player is just pressing S...
 				if (value < 0)
 				{
-					SetCharacterMovementSpeed(BackwardsJogSpeed);
+					if(!bShouldMiniLand)
+					{
+						SetCharacterMovementSpeed(BackwardsJogSpeed);
+					}
+					//SetCharacterMovementSpeed(BackwardsJogSpeed); HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEER
 
 					//GetCharacterMovement()->MaxWalkSpeed = BackwardsJogSpeed;
 					//...and is sprinting...
@@ -298,7 +307,11 @@ void ASRCharacter::MoveForward(float value)
 						if (GunStatus == EGunStatus::Egs_ADSing)
 						{
 							//...Set Speed to walkspeed
-							SetCharacterMovementSpeed(WalkSpeed);
+							if (!bShouldMiniLand)
+							{
+								SetCharacterMovementSpeed(WalkSpeed);
+							}
+							//SetCharacterMovementSpeed(WalkSpeed); HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEER
 						}
 						else
 						{
@@ -339,7 +352,11 @@ void ASRCharacter::MoveForward(float value)
 
 								if (GetCharacterMovementSpeed() <= JogSpeed)
 								{
-									SetCharacterMovementSpeed(JogSpeed);
+									if (!bShouldMiniLand)
+									{
+										SetCharacterMovementSpeed(JogSpeed);
+									}
+									//SetCharacterMovementSpeed(JogSpeed); HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEER
 								}
 								else
 								{
@@ -649,7 +666,7 @@ void ASRCharacter::EndCrouch()
 	SetStanceStatus(EStanceStatus::Ess_Standing);
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
 	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
-	GetMesh()->SetRelativeLocation(FVector(0, 0, -88));
+	GetMesh()->SetRelativeLocation(MeshInitialiseLocation);
 	bCheckCapsuleProperties = true;
 }
 
@@ -753,11 +770,10 @@ void ASRCharacter::StartSlide()
 void ASRCharacter::EndSlide()
 {
 	SetStanceStatus(EStanceStatus::Ess_Standing);
-	UE_LOG(LogTemp, Warning, TEXT("END SLIDE"));
 	if (!SlideRequest)
 	{
 
-		GetMesh()->SetRelativeLocation(FVector(-5, 0, -88));
+		GetMesh()->SetRelativeLocation(MeshInitialiseLocation);
 		if ((bIsMovingForward || bIsMovingRight))
 		{
 			if (StandingMovementStatus == EStandingMovementStatus::Esms_Jogging || StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
@@ -803,7 +819,6 @@ void ASRCharacter::SlideSlopeDetection()
 	{
 		//Hit
 		DrawDebugLine(GetWorld(), SlopeAngleTraceStart, SlopeAngleTraceEnd, FColor::Green, false, 3, 0, 1);
-		//UE_LOG(LogTemp, Warning, TEXT("%f"), SlopeAngleTraceHit.ImpactNormal.Z);
 		if (SlopeAngleTraceHit.ImpactNormal.Z >= 1.0f)
 		{
 			SetSlideStatus(ESlideStatus::Ess_FlatSlope);
@@ -836,7 +851,6 @@ void ASRCharacter::SlideSlopeDetection()
 			{
 				EndSlide();
 			}
-			UE_LOG(LogTemp, Warning, TEXT("%f"), PointDifference);
 		}
 		else
 		{
@@ -888,6 +902,16 @@ bool ASRCharacter::GetShouldHardLand()
 	return bShouldHardLand;
 }
 
+bool ASRCharacter::GetShouldMiniLand()
+{
+	return bShouldMiniLand;
+}
+
+void ASRCharacter::SetShouldMiniLand(bool ShouldMiniLand)
+{
+	bShouldMiniLand = ShouldMiniLand;
+}
+
 void ASRCharacter::SetCharacterMovementSpeed(float MoveSpeed)
 {
 	GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
@@ -918,7 +942,7 @@ void ASRCharacter::CheckCapsuleHeightRadius()
 	
 	if(GetStanceStatus() == EStanceStatus::Ess_Standing || GetInAirStatus() != EInAirStatus::Eias_Nis)
 	{
-		GetMesh()->SetRelativeLocation(FVector(-5, 0, -88));
+		GetMesh()->SetRelativeLocation(MeshInitialiseLocation);
 		if (GetCapsuleComponent()->GetScaledCapsuleHalfHeight() < 87.0f || GetCapsuleComponent()->GetScaledCapsuleHalfHeight() > 89.0f)
 		{
 			GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(GetCapsuleComponent()->GetScaledCapsuleHalfHeight(), StandingCapsuleHeight, 0.2));
@@ -1058,7 +1082,6 @@ float ASRCharacter::PlayAnimMontage(UAnimMontage * AnimMontage, float InPlayRate
 	{
 		float const Duration = AnimInstance->Montage_Play(AnimMontage, InPlayRate);
 
-		//UE_LOG(LogTemp, Warning, TEXT("PLAYED MONTAGE"));
 		
 		// Start at a given Section if given
 		if (StartSectionName != NAME_None)
@@ -1188,7 +1211,6 @@ void ASRCharacter::AimReleased()
 	{
 		bChangeFOV = true;
 		bAimPressed = false;
-		UE_LOG(LogTemp, Warning, TEXT("not AIMING"));
 
 		if (GetGunStatus() != EGunStatus::Egs_Reloading)
 		{
@@ -1399,7 +1421,7 @@ void ASRCharacter::SetStanceStatus(EStanceStatus Status)
 
 	if (StanceStatus == EStanceStatus::Ess_Standing)
 	{
-		GetMesh()->SetRelativeLocation(FVector(-5, 0, -88));
+		GetMesh()->SetRelativeLocation(MeshInitialiseLocation);
 	}
 	else if (StanceStatus == EStanceStatus::Ess_Crouching)
 	{

@@ -21,6 +21,7 @@ enum class EStanceStatus : uint8
 	Ess_Crouching UMETA(DisplayName = "Crouching"),
 	Ess_InAir UMETA(DisplayName = "InAir"),
 	Ess_Sliding UMETA(DisplayName = "Sliding"),
+	Ess_Rolling UMETA(DisplayName = "Rolling"),
 	Ess_Dead UMETA(DisplayName = "Dead"),
 	Ess_Max UMETA(DisplayName = "DefaultMax")
 };
@@ -156,7 +157,7 @@ public:
 	bool GetGunHolstered();
 	bool GetShouldHardLand();
 	bool GetShouldRollLand();
-	void SetShouldRollLand(bool ShouldMiniLand);
+	void SetShouldRollLand(bool ShouldRollLand);
 	
 	//Capsule
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
@@ -207,6 +208,7 @@ protected:
 	float DefaultSprintSpeed = 900.0f;
 	float CrouchSpeed = 300.0f;
 	float WalkSpeed = 400;
+	float RollSpeed = 750;
 	void SetCharacterMovementSpeed(float MoveSpeed);
 	float GetCharacterMovementSpeed();
 
@@ -260,10 +262,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Fall")
 	float SoftLandDelay = 0.8f;
 	FTimerHandle MiniLandTimer;
-	void JustMiniLandedRecover();
+	void JustRollLandedRecover();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fall")
 	bool bShouldRollLand = false;
-
 
 	//Aim/Weapons
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")

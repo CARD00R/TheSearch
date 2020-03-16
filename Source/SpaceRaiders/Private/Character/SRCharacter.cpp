@@ -108,6 +108,22 @@ void ASRCharacter::Tick(float DeltaTime)
 	{
 		SetCameraFOV(DeltaTime);
 	}
+	if(StanceStatus == EStanceStatus::Ess_Rolling)
+	{
+		if(StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
+		{
+			RollSpeed = SprintSpeed * 0.9;
+			UE_LOG(LogTemp, Error, TEXT("Running! when rolling"));
+			SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), RollSpeed, 0.5));
+		}
+		else if (StandingMovementStatus == EStandingMovementStatus::Esms_Jogging)
+		{
+			RollSpeed = JogSpeed * 1.2f;
+			UE_LOG(LogTemp, Error, TEXT("Jogging! when rolling"));
+			SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), RollSpeed, 0.5));
+		}
+
+	}
 }
 
 // Called to bind functionality to input
@@ -219,8 +235,9 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 			}
 			if(bShouldRollLand)
 			{
-				//SetCharacterMovementSpeed(300.0f);
-				GetWorld()->GetTimerManager().SetTimer(MiniLandTimer, this, &ASRCharacter::JustMiniLandedRecover, 0.9f, false);			
+				SetStanceStatus(EStanceStatus::Ess_Rolling);
+				bShouldRollLand = false;
+				GetWorld()->GetTimerManager().SetTimer(MiniLandTimer, this, &ASRCharacter::JustRollLandedRecover, 0.7f, false);			
 			}
 		}
 		else
@@ -255,14 +272,13 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 
 	SetInAirStatus(EInAirStatus::Eias_Nis);
 }
-void ASRCharacter::JustMiniLandedRecover()
+void ASRCharacter::JustRollLandedRecover()
 {
-	bShouldRollLand = false;
+	SetStanceStatus(EStanceStatus::Ess_Standing);
 }
 
 void ASRCharacter::MoveForward(float value)
 {
-
 	if (bGlobalKeysInput)
 	{
 		AddMovementInput(GetActorForwardVector() * value);
@@ -279,13 +295,7 @@ void ASRCharacter::MoveForward(float value)
 				// and Player is just pressing S...
 				if (value < 0)
 				{
-					/*if(!bShouldMiniLand)
-					{
-						SetCharacterMovementSpeed(BackwardsJogSpeed);
-					}*/
-					//SetCharacterMovementSpeed(BackwardsJogSpeed); HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEER
 
-					//GetCharacterMovement()->MaxWalkSpeed = BackwardsJogSpeed;
 					//...and is sprinting...
 					if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
 					{
@@ -299,19 +309,14 @@ void ASRCharacter::MoveForward(float value)
 				}
 
 				// if the player is just pressing W...
-				else
+				else if (value > 0)
 				{
 					if (!SlideRequest)
 					{
 						//...and player is ADSing...
 						if (GunStatus == EGunStatus::Egs_ADSing)
 						{
-							//...Set Speed to walkspeed
-							/*if (!bShouldMiniLand)
-							{
-								SetCharacterMovementSpeed(WalkSpeed);
-							}*/
-							//SetCharacterMovementSpeed(WalkSpeed); HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEER
+							
 						}
 						else
 						{
@@ -328,20 +333,15 @@ void ASRCharacter::MoveForward(float value)
 								{
 									SprintSpeed = DefaultSprintSpeed;
 									SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+
 									if (GetCharacterMovementSpeed() < DefaultSprintSpeed)
 									{
-										//SetCharacterMovementSpeed(SprintSpeed);
 										SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), SprintSpeed, 0.5));
 									}
 									else if (GetCharacterMovementSpeed() > DefaultSprintSpeed)
 									{
 										SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), SprintSpeed, 0.3));
 									}
-									else
-									{
-
-									}
-
 								}
 							}
 							//...and player is moving forward and not sprinting...
@@ -350,17 +350,13 @@ void ASRCharacter::MoveForward(float value)
 								//...then player is jogging
 								SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
 
-								if (GetCharacterMovementSpeed() <= JogSpeed)
-								{
-									/*if (!bShouldRollLand)
-									{
-										SetCharacterMovementSpeed(JogSpeed);
-									}*/
-									//SetCharacterMovementSpeed(JogSpeed); HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEER
-								}
-								else
+								if (GetCharacterMovementSpeed() < JogSpeed)
 								{
 									SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), JogSpeed, 0.3));
+								}
+								else if (GetCharacterMovementSpeed() > JogSpeed)
+								{
+									SetCharacterMovementSpeed(FMath::Lerp(GetCharacterMovementSpeed(), JogSpeed, 0.5));
 								}
 							}
 						}
@@ -376,12 +372,29 @@ void ASRCharacter::MoveForward(float value)
 		//If Player is not pressing W/S...
 		else
 		{
-			//...then player is not moving forward
-			bIsMovingForward = false;
+			
+		SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
 
-			if (StanceStatus == EStanceStatus::Ess_Sliding)
+			if (StanceStatus == EStanceStatus::Ess_Rolling && !SlideRequest)
 			{
-				EndSlide();
+				bIsMovingForward = true;
+				
+				if (StandingMovementStatus == EStandingMovementStatus::Esms_Idling)
+				{
+					RollSpeed = JogSpeed * 0.7f;
+					AddMovementInput(GetActorForwardVector() * 1);
+					SetCharacterMovementSpeed(RollSpeed);
+				}
+			}
+			else
+			{
+				//...then player is not moving forward
+				bIsMovingForward = false;
+
+				if (StanceStatus == EStanceStatus::Ess_Sliding)
+				{
+					EndSlide();
+				}
 			}
 		}
 	}

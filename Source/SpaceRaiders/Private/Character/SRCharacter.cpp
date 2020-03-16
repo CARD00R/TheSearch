@@ -217,10 +217,10 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 			{
 				SetStanceStatus(EStanceStatus::Ess_Crouching);
 			}
-			if(bShouldMiniLand)
+			if(bShouldRollLand)
 			{
-				SetCharacterMovementSpeed(300.0f);
-				GetWorld()->GetTimerManager().SetTimer(MiniLandTimer, this, &ASRCharacter::JustMiniLandedRecover, 0.4f, false);			
+				//SetCharacterMovementSpeed(300.0f);
+				GetWorld()->GetTimerManager().SetTimer(MiniLandTimer, this, &ASRCharacter::JustMiniLandedRecover, 0.9f, false);			
 			}
 		}
 		else
@@ -257,7 +257,7 @@ void ASRCharacter::Landed(const FHitResult & Hit)
 }
 void ASRCharacter::JustMiniLandedRecover()
 {
-	SetCharacterMovementSpeed(JogSpeed);
+	bShouldRollLand = false;
 }
 
 void ASRCharacter::MoveForward(float value)
@@ -279,10 +279,10 @@ void ASRCharacter::MoveForward(float value)
 				// and Player is just pressing S...
 				if (value < 0)
 				{
-					if(!bShouldMiniLand)
+					/*if(!bShouldMiniLand)
 					{
 						SetCharacterMovementSpeed(BackwardsJogSpeed);
-					}
+					}*/
 					//SetCharacterMovementSpeed(BackwardsJogSpeed); HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEER
 
 					//GetCharacterMovement()->MaxWalkSpeed = BackwardsJogSpeed;
@@ -307,10 +307,10 @@ void ASRCharacter::MoveForward(float value)
 						if (GunStatus == EGunStatus::Egs_ADSing)
 						{
 							//...Set Speed to walkspeed
-							if (!bShouldMiniLand)
+							/*if (!bShouldMiniLand)
 							{
 								SetCharacterMovementSpeed(WalkSpeed);
-							}
+							}*/
 							//SetCharacterMovementSpeed(WalkSpeed); HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEER
 						}
 						else
@@ -352,10 +352,10 @@ void ASRCharacter::MoveForward(float value)
 
 								if (GetCharacterMovementSpeed() <= JogSpeed)
 								{
-									if (!bShouldMiniLand)
+									/*if (!bShouldRollLand)
 									{
 										SetCharacterMovementSpeed(JogSpeed);
-									}
+									}*/
 									//SetCharacterMovementSpeed(JogSpeed); HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEER
 								}
 								else
@@ -902,14 +902,14 @@ bool ASRCharacter::GetShouldHardLand()
 	return bShouldHardLand;
 }
 
-bool ASRCharacter::GetShouldMiniLand()
+bool ASRCharacter::GetShouldRollLand()
 {
-	return bShouldMiniLand;
+	return bShouldRollLand;
 }
 
-void ASRCharacter::SetShouldMiniLand(bool ShouldMiniLand)
+void ASRCharacter::SetShouldRollLand(bool ShouldRollLand)
 {
-	bShouldMiniLand = ShouldMiniLand;
+	bShouldRollLand = ShouldRollLand;
 }
 
 void ASRCharacter::SetCharacterMovementSpeed(float MoveSpeed)

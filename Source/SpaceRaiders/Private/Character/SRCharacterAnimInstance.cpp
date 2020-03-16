@@ -56,7 +56,7 @@ void USRCharacterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 			CrouchingMovementStatus = Character->GetCrouchingMovementStatus();
 			GunStatus = Character->GetGunStatus();
 
-			bShouldMiniLand = Character->GetShouldMiniLand();
+			bShouldRollLand = Character->GetShouldRollLand();
 			bGunHolstered = Character->GetGunHolstered();
 			bShouldHardLand = Character->GetShouldHardLand();
 			Character->FallHeight = FallHeight;
@@ -108,20 +108,20 @@ void USRCharacterAnimInstance::DetermineVerticalVelocityProperties()
 		if(FallHeight > FallHeightFlailLimit)
 		{
 			Character->SetInAirStatus(EInAirStatus::Eias_Flailing);
-			bShouldMiniLand = false;
+			Character->SetShouldRollLand(false);
 		}
 		else
 		{
 			Character->SetInAirStatus(EInAirStatus::Eias_Falling);
-			bShouldMiniLand = false;
+			Character->SetShouldRollLand(false);
 			bShouldResetFallHeight = true;
 
 		}
 
 		if (FallHeight > FallHeightMiniLandLimit && FallHeight < 1300)
 		{
-			bShouldMiniLand = true;
-			Character->SetShouldMiniLand(bShouldMiniLand);
+			//bShouldRollLand = true;
+			Character->SetShouldRollLand(true);
 		}
 		FallHeight = FallHeightStartingZ - StoredZLocation;
 	}

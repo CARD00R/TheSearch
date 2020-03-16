@@ -155,8 +155,8 @@ public:
 	void SetInAirStatus(EInAirStatus Status);
 	bool GetGunHolstered();
 	bool GetShouldHardLand();
-	bool GetShouldMiniLand();
-	void SetShouldMiniLand(bool ShouldMiniLand);
+	bool GetShouldRollLand();
+	void SetShouldRollLand(bool ShouldMiniLand);
 	
 	//Capsule
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
@@ -262,7 +262,7 @@ protected:
 	FTimerHandle MiniLandTimer;
 	void JustMiniLandedRecover();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fall")
-	bool bShouldMiniLand = false;
+	bool bShouldRollLand = false;
 
 
 	//Aim/Weapons

@@ -37,6 +37,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
 	EGunStatus GunStatus;
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
+	bool bShouldRollLand;
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Properties")
@@ -72,9 +76,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
 	bool bShouldHardLand;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
-	bool bShouldMiniLand;
 
 	bool bShouldResetFallHeight = false;
 

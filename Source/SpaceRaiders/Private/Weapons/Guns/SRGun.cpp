@@ -161,6 +161,11 @@ void ASRGun::Fire()
 	else
 	{
 		//*click click* No ammo in clip
+		if (EmptyMagSFX)
+		{
+			FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+			UGameplayStatics::PlaySoundAtLocation(this, EmptyMagSFX, MuzzleLocation, FRotator(0, 0, 0));
+		}
 	}
 }
 
@@ -187,6 +192,7 @@ void ASRGun::PlayFireEffects(FVector TracerEnd, FHitResult HitRes)
 {
 	ASRCharacter* MyCharacter = Cast<ASRCharacter>(GetOwner());
 	APawn* MyPawn = Cast<APawn>(GetOwner());
+	FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
 	
 	if (MuzzleEffect)
 	{
@@ -195,8 +201,6 @@ void ASRGun::PlayFireEffects(FVector TracerEnd, FHitResult HitRes)
 	}
 	if (TracerEffect)
 	{
-		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
-
 		UParticleSystemComponent* TracerComp = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), TracerEffect, MuzzleLocation);
 
 		//Getting Tracer Particle system and setting the target parameter to the end of the tracerpoint
@@ -228,7 +232,10 @@ void ASRGun::PlayFireEffects(FVector TracerEnd, FHitResult HitRes)
 			}
 		}
 	}
-	
+	if(FireSFX)
+	{	
+		UGameplayStatics::PlaySoundAtLocation(this, FireSFX, MuzzleLocation, FRotator(0, 0, 0));
+	}	
 }
 
 void ASRGun::Reload()
@@ -247,6 +254,11 @@ void ASRGun::Reload()
 			CurrentBulletsInMag = CurrentBulletsInMag + BulletsInReserve;
 			BulletsInReserve = 0.0f;
 		}
+	}
+	if (ReloadSFX)
+	{
+		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+		UGameplayStatics::PlaySoundAtLocation(this, ReloadSFX, MuzzleLocation, FRotator(0, 0, 0));
 	}
 }
 

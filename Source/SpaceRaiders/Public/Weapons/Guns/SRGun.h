@@ -13,6 +13,18 @@ class UCameraShake;
 class UAnimMontage;
 class ASRCharacter;
 class USphereComponent;
+class USoundBase;
+
+UENUM(BlueprintType)
+enum class EGunType : uint8
+{
+	Egt_Pistol UMETA(DisplayName = "Pistol"),
+	Egt_Shotgun UMETA(DisplayName = "Shotgun"),
+	Egt_SMG UMETA(DisplayName = "SMG"),
+	Egt_AssaultRifle UMETA(DisplayName = "AssaultRifle"),
+	Egt_Sniper UMETA(DisplayName = "Sniper"),
+	Egt_Max UMETA(DisplayName = "DefaultMax")
+};
 
 UCLASS()
 class SPACERAIDERS_API ASRGun : public AActor
@@ -67,10 +79,24 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<UCameraShake> FireCameraShake;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	USoundBase* FireSFX;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	USoundBase* HitSFX;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	USoundBase* ReloadSFX;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	USoundBase* EmptyMagSFX;
 	
 	void PlayFireEffects(FVector TracerEnd, FHitResult HitRes);
 
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+	EGunType GunType;
+	
 	// Values
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	float BaseDamage = 20.0f;

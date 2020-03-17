@@ -373,8 +373,10 @@ void ASRCharacter::MoveForward(float value)
 		else
 		{
 			
-		SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
-
+		if (!bIsMovingRight)
+		{
+			SetStandingMovementStatus(EStandingMovementStatus::Esms_Idling);
+		}
 			if (StanceStatus == EStanceStatus::Ess_Rolling && !SlideRequest)
 			{
 				bIsMovingForward = true;
@@ -1127,10 +1129,41 @@ void ASRCharacter::AnimNotifyPickUpGun()
 }
 void ASRCharacter::AnimNotifyHolsterSecondaryGun()
 {
-	if (SecondaryWeapon)
+	/*if(PrimaryWeapon)
 	{
-		SecondaryWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+		if (SecondaryWeapon)
+		{
+			SecondaryWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+		}
 	}
+	else
+	{
+		if (PrimaryWeapon)
+		{
+			PrimaryWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+		}
+	}*/
+
+	if(EquippedWeapon)
+	{
+		if (EquippedWeapon == PrimaryWeapon)
+		{
+			if (SecondaryWeapon)
+			{
+				SecondaryWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+			}
+		}
+		else
+		{
+			if (PrimaryWeapon)
+			{
+				PrimaryWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
+			}
+		}
+	}
+
+	
+
 }
 void ASRCharacter::AnimNotifyHolsterPrimaryGun()
 {
@@ -1406,6 +1439,7 @@ void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
 		PrimaryWeapon->SetPickedUpState(true);
 		PrimaryWeapon->SetOwner(this);
 		PrimaryWeapon->PlayPickUpAmmoMontage();
+		//PrimaryWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponHolsterSocketName);
 	}
 	else
 	{

@@ -60,7 +60,7 @@ protected:
 	float VerticalVelocity;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
-	float FallHeightFlailLimit = 700;
+	float FallHeightFlailLimit = 900;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Falling Properties")
 	float FallHeightMiniLandLimit = 450;

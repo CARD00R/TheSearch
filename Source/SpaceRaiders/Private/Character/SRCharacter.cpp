@@ -12,6 +12,7 @@
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
 #include "Weapons/Guns/SRGun.h"
+#include "Pickups/SRPickup.h"
 #include "SpaceRaiders.h"
 #include "Components/SRHealthComponent.h"
 #include "Animation/AnimInstance.h"
@@ -573,11 +574,38 @@ void ASRCharacter::GlobalMouseInputEnable()
 }
 void ASRCharacter::InteractWith()
 {
-	if(ProximityGunPickUp)
+	if(ProximityGunPickup)
 	{
-		PickUpWeapon(ProximityGunPickUp);
+		PickUpWeapon(ProximityGunPickup);
+	}
+	if(ProximityUtilityPickup)
+	{
+		PickupUtility(ProximityUtilityPickup);
 	}
 	
+}
+void ASRCharacter::PickupUtility(ASRPickup * UtilityToPickup)
+{
+	ASRPickup* TempUtilityPickup = UtilityToPickup;
+	TempUtilityPickup->SetOwner(this);
+	TempUtilityPickup->Store();
+	/*
+	if (TempUtilityPickup->GetUtilityPickupType() == EPickupType::Ept_Ammo)
+	{
+		
+	}
+	else if (TempUtilityPickup->GetUtilityPickupType() == EPickupType::Ept_Currency)
+	{
+		
+	}
+	else if (TempUtilityPickup->GetUtilityPickupType() == EPickupType::Ept_Health)
+	{
+		HealthUtilityCount++;
+	}
+	else if (TempUtilityPickup->GetUtilityPickupType() == EPickupType::Ept_Stamina)
+	{
+		StaminaUtilityCount++;
+	}*/
 }
 #pragma endregion
 
@@ -1109,7 +1137,11 @@ float ASRCharacter::PlayAnimMontage(UAnimMontage * AnimMontage, float InPlayRate
 }
 void ASRCharacter::SetProximityGunPickUp(ASRGun* Gun)
 {
-	ProximityGunPickUp = Gun;
+	ProximityGunPickup = Gun;
+}
+void ASRCharacter::SetProxmityUtilityPickup(ASRPickup * UtilityPickup)
+{
+	ProximityUtilityPickup = UtilityPickup;
 }
 void ASRCharacter::AnimNotifyUnHolster()
 {
@@ -1237,6 +1269,7 @@ void ASRCharacter::AimPressed()
 		if (StandingMovementStatus == EStandingMovementStatus::Esms_Sprinting)
 		{
 			SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+			SetCharacterMovementSpeed(JogSpeed);
 		}
 		if (StanceStatus == EStanceStatus::Ess_Sliding)
 		{
@@ -1377,16 +1410,9 @@ void ASRCharacter::DropWeapon()
 		{
 			bGunHolstered = true;
 		}
-
-
-		/*EquippedWeapon->DroppedCollisionPreset();
-		EquippedWeapon->SetOwner(nullptr);
-		EquippedWeapon->SetPickedUpState(false);
-		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		EquippedWeapon = nullptr;*/
 	}
 }
-void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
+void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickup)
 {
 	//Spawn a default weapon
 	bGunHolstered = false;
@@ -1397,7 +1423,7 @@ void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
 		{
 			if(EquippedWeapon == PrimaryWeapon)
 			{
-				PrimaryWeapon = WeaponToPickUp;
+				PrimaryWeapon = WeaponToPickup;
 				DropWeapon();
 				EquippedWeapon = PrimaryWeapon;
 				EquippedWeapon->PickedupCollisionPreset();
@@ -1408,7 +1434,7 @@ void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
 			}
 			else if (EquippedWeapon == SecondaryWeapon)
 			{
-				SecondaryWeapon = WeaponToPickUp;
+				SecondaryWeapon = WeaponToPickup;
 				DropWeapon();
 				EquippedWeapon = SecondaryWeapon;
 				EquippedWeapon->PickedupCollisionPreset();
@@ -1424,7 +1450,7 @@ void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
 		}
 		else
 		{
-			SecondaryWeapon = WeaponToPickUp;
+			SecondaryWeapon = WeaponToPickup;
 			SecondaryWeapon->PickedupCollisionPreset();
 			SecondaryWeapon->SetPickedUpState(true);
 			SecondaryWeapon->SetOwner(this);
@@ -1434,7 +1460,7 @@ void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
 	}
 	else if(SecondaryWeapon)
 	{
-		PrimaryWeapon = WeaponToPickUp;
+		PrimaryWeapon = WeaponToPickup;
 		PrimaryWeapon->PickedupCollisionPreset();
 		PrimaryWeapon->SetPickedUpState(true);
 		PrimaryWeapon->SetOwner(this);
@@ -1443,17 +1469,14 @@ void ASRCharacter::PickUpWeapon(ASRGun* WeaponToPickUp)
 	}
 	else
 	{
-		PrimaryWeapon = WeaponToPickUp;
+		PrimaryWeapon = WeaponToPickup;
 		EquippedWeapon = PrimaryWeapon;
 		EquippedWeapon->PickedupCollisionPreset();
 		EquippedWeapon->SetPickedUpState(true);
 		EquippedWeapon->SetOwner(this);
 		EquippedWeapon->PlayPickUpGunMontage();
 		//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
-	}
-
-	
-	
+	}	
 }
 
 #pragma endregion 

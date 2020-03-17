@@ -13,6 +13,7 @@ class UCameraComponent;
 class APlayerController;
 class ASRGun;
 class USRHealthComponent;
+class ASRPickup;
 
 UENUM(BlueprintType)
 enum class EStanceStatus : uint8
@@ -203,7 +204,7 @@ protected:
 	//Movement Properties
 	float JogSpeed = 600.0f;
 	float BackwardsJogSpeed = 400.0f;
-	float DiagonalSprintSpeed = 800.0f;
+	float DiagonalSprintSpeed = 750.0f;
 	float SprintSpeed = DefaultSprintSpeed;
 	float DefaultSprintSpeed = 900.0f;
 	float CrouchSpeed = 300.0f;
@@ -289,9 +290,11 @@ protected:
 	void ReloadRequest();
 	void Reload();
 	void DropWeapon();
-	void PickUpWeapon(ASRGun* WeaponToPickUp);
+	void PickUpWeapon(ASRGun* WeaponToPickup);
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
-	ASRGun* ProximityGunPickUp;
+	ASRGun* ProximityGunPickup;
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
+	ASRPickup* ProximityUtilityPickup;
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
 	ASRGun* PrimaryWeapon;
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
@@ -306,6 +309,13 @@ protected:
 	// Interact
 	void InteractWith();
 
+	// Pickups
+	void PickupUtility(ASRPickup* UtilityToPickup);
+
+	// Inventory
+	int HealthUtilityCount;
+	int StaminaUtilityCount;
+	
 	// Health
 	UFUNCTION()
 	void OnHealthChanged(USRHealthComponent* HealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
@@ -325,6 +335,7 @@ public:
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
 	ASRGun* EquippedWeapon;
 	void SetProximityGunPickUp(ASRGun* Gun);
+	void SetProxmityUtilityPickup(ASRPickup*  UtilityPickup);
 	bool bAimPressed = false;
 
 	// Anim Notify

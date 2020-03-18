@@ -213,13 +213,27 @@ void ASRGun::PlayFireEffects(FVector TracerEnd, FHitResult HitRes)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedImpactEffect, HitRes.ImpactPoint, HitRes.ImpactNormal.Rotation());
 	}
-	if (FireMontage)
+	if(MyCharacter->GetStanceStatus() == EStanceStatus::Ess_Crouching)
 	{
-		if(MyCharacter)
+		if (CrouchingFireMontage)
 		{
-			MyCharacter->PlayAnimMontage(FireMontage, 1.0f, NAME_None);	
+			if (MyCharacter)
+			{
+				MyCharacter->PlayAnimMontage(CrouchingFireMontage, 1.0f, NAME_None);
+			}
 		}
 	}
+	else
+	{
+		if (StandingFireMontage)
+		{
+			if (MyCharacter)
+			{
+				MyCharacter->PlayAnimMontage(StandingFireMontage, 1.0f, NAME_None);
+			}
+		}
+	}
+
 	if (FireCameraShake)
 	{
 		// Play Camera Shake BP
@@ -339,12 +353,13 @@ void ASRGun::PlayPickUpAmmoMontage()
 		}
 		else if (MyCharacter->GetStandingMovementStatus() == EStandingMovementStatus::Esms_Idling)
 		{
-			MyCharacter->PlayAnimMontage(PickUpAmmoMontage, 2.0f, NAME_None);
+			MyCharacter->PlayAnimMontage(PickUpAmmoMontage, 1.4f, NAME_None);
 		}
 		else
 		{
-			MyCharacter->PlayAnimMontage(PickUpAmmoMontage, 2.0f, NAME_None);
+			MyCharacter->PlayAnimMontage(PickUpAmmoMontage, 1.6f, NAME_None);
 		}
+		UE_LOG(LogTemp, Error, TEXT("PLAYING AMMO MONTAGE"));
 
 	}
 }

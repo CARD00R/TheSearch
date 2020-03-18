@@ -80,16 +80,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<UCameraShake> FireCameraShake;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	USoundBase* FireSFX;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	USoundBase* HitSFX;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	USoundBase* ReloadSFX;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	USoundBase* EmptyMagSFX;
 	
 	void PlayFireEffects(FVector TracerEnd, FHitResult HitRes);
@@ -136,7 +136,9 @@ public:
 	bool IsPickedUp;
 	// Montages
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	UAnimMontage* FireMontage;
+	UAnimMontage* StandingFireMontage;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UAnimMontage* CrouchingFireMontage;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	UAnimMontage* ReloadMontage;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")

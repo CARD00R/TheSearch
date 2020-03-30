@@ -105,10 +105,16 @@ void USRCharacterAnimInstance::DetermineVerticalVelocityProperties()
 	{
 		Character->bCheckCapsuleProperties = true;
 		Character->SetStanceStatus(EStanceStatus::Ess_InAir);
+		
 		if(FallHeight > FallHeightFlailLimit)
 		{
 			Character->SetInAirStatus(EInAirStatus::Eias_Flailing);
 			Character->SetShouldRollLand(false);
+		}
+		else if (FallHeight > FallHeightMiniLandLimit && FallHeight < 1700)
+		{
+			//bShouldRollLand = true;
+			Character->SetShouldRollLand(true);
 		}
 		else
 		{
@@ -116,12 +122,6 @@ void USRCharacterAnimInstance::DetermineVerticalVelocityProperties()
 			Character->SetShouldRollLand(false);
 			bShouldResetFallHeight = true;
 
-		}
-
-		if (FallHeight > FallHeightMiniLandLimit && FallHeight < 1300)
-		{
-			//bShouldRollLand = true;
-			Character->SetShouldRollLand(true);
 		}
 		FallHeight = FallHeightStartingZ - StoredZLocation;
 	}

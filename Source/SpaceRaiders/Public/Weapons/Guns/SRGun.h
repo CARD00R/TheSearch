@@ -14,6 +14,7 @@ class UAnimMontage;
 class ASRCharacter;
 class USphereComponent;
 class USoundBase;
+class UTexture2D;
 
 UENUM(BlueprintType)
 enum class EGunType : uint8
@@ -77,6 +78,9 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName TracerTargetName;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UTexture2D* WeaponPortrait;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<UCameraShake> FireCameraShake;
 

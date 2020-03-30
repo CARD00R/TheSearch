@@ -128,11 +128,17 @@ void ASRGun::Fire()
 					SelectedImpactEffect = MetalImpactEffect;
 					break;
 				}
-
+				//UE_LOG(LogTemp, Error, TEXT("Name:", *SelectedImpactEffect->GetName()));
 				TracerEndPoint = Hit.ImpactPoint;
-				if (ObjectSurfaceType == SURFACE_METAL)
+				if (ObjectSurfaceType == SURFACE_CHARCHEST || ObjectSurfaceType == SURFACE_CHARCRITICAL ||
+					ObjectSurfaceType == SURFACE_CHARDEFAULT || ObjectSurfaceType == SURFACE_CHARHEAD)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("METAL"));
+					UE_LOG(LogTemp, Error, TEXT("Meat"));
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("Metal"));
+					SelectedImpactEffect = MetalImpactEffect;
 				}
 			}
 

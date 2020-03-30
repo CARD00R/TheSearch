@@ -76,8 +76,6 @@ ASRCharacter::ASRCharacter()
 	// Aim Released
 	bGunHolstered = true;
 	SetGunStatus(EGunStatus::Egs_Nis);
-	//bChangeFOV = true;
-	//bAimPressed = false;
 }
 
 // Called when the game starts or when spawned
@@ -85,6 +83,7 @@ void ASRCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	OwningHealthComp->OnHealthChanged.AddDynamic(this, &ASRCharacter::OnHealthChanged);
+	CharMovementComp = GetCharacterMovement();
 }
 
 // Called every frame
@@ -125,6 +124,14 @@ void ASRCharacter::Tick(float DeltaTime)
 		}
 
 	}
+	if(InAirStatus!=EInAirStatus::Eias_Nis)
+	{
+		CharMovementComp->GravityScale = CharMovementComp->GravityScale + 0.005;
+	}
+	else
+	{
+		CharMovementComp->GravityScale = 2.8f;
+	}
 }
 
 // Called to bind functionality to input
@@ -134,31 +141,31 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	//Axis Events
 	
-	PlayerInputComponent->BindAxis("MoveForward", this, &ASRCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ASRCharacter::MoveRight);
-	PlayerInputComponent->BindAxis("LookUp", this, &ASRCharacter::LookUp);
-	PlayerInputComponent->BindAxis("Turn", this, &ASRCharacter::Turn);
+	PlayerInputComponent->BindAxis("CharacterMoveForward", this, &ASRCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("CharacterMoveRight", this, &ASRCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("CharacterLookUp", this, &ASRCharacter::LookUp);
+	PlayerInputComponent->BindAxis("CharacterTurn", this, &ASRCharacter::Turn);
 
 	//Action Events
 
-	PlayerInputComponent->BindAction("FreeLook", IE_Pressed, this, &ASRCharacter::FreeLookOn);
-	PlayerInputComponent->BindAction("FreeLook", IE_Released, this, &ASRCharacter::FreeLookOff);
+	PlayerInputComponent->BindAction("CharacterFreeLook", IE_Pressed, this, &ASRCharacter::FreeLookOn);
+	PlayerInputComponent->BindAction("CharacterFreeLook", IE_Released, this, &ASRCharacter::FreeLookOff);
 	/////// Movement Events
-	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASRCharacter::CrouchSlideCheckPressed);
-	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASRCharacter::CrouchSlideCheckReleased);
-	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASRCharacter::StartSprint);
-	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASRCharacter::SprintReleased);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASRCharacter::StartJump);
+	PlayerInputComponent->BindAction("CharacterCrouch", IE_Pressed, this, &ASRCharacter::CrouchSlideCheckPressed);
+	PlayerInputComponent->BindAction("CharacterCrouch", IE_Released, this, &ASRCharacter::CrouchSlideCheckReleased);
+	PlayerInputComponent->BindAction("CharacterSprint", IE_Pressed, this, &ASRCharacter::StartSprint);
+	PlayerInputComponent->BindAction("CharacterSprint", IE_Released, this, &ASRCharacter::SprintReleased);
+	PlayerInputComponent->BindAction("CharacterJump", IE_Pressed, this, &ASRCharacter::StartJump);
 	/////// Weapons & ADS
-	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ASRCharacter::AimPressed);
-	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ASRCharacter::AimReleased);
-	PlayerInputComponent->BindAction("PrimaryWeapon", IE_Pressed, this, &ASRCharacter::EquipPrimaryWeapon);
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASRCharacter::PullTrigger);
-	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASRCharacter::ReleaseTrigger);
-	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASRCharacter::ReloadRequest);
-	PlayerInputComponent->BindAction("DropWeapon", IE_Pressed, this, &ASRCharacter::DropWeapon);
-	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ASRCharacter::InteractWith);
-	PlayerInputComponent->BindAction("SecondaryWeapon", IE_Pressed, this, &ASRCharacter::EquipSecondaryWeapon);
+	PlayerInputComponent->BindAction("CharacterAim", IE_Pressed, this, &ASRCharacter::AimPressed);
+	PlayerInputComponent->BindAction("CharacterAim", IE_Released, this, &ASRCharacter::AimReleased);
+	PlayerInputComponent->BindAction("CharacterPrimaryWeapon", IE_Pressed, this, &ASRCharacter::EquipPrimaryWeapon);
+	PlayerInputComponent->BindAction("CharacterFire", IE_Pressed, this, &ASRCharacter::PullTrigger);
+	PlayerInputComponent->BindAction("CharacterFire", IE_Released, this, &ASRCharacter::ReleaseTrigger);
+	PlayerInputComponent->BindAction("CharacterReload", IE_Pressed, this, &ASRCharacter::ReloadRequest);
+	PlayerInputComponent->BindAction("CharacterDropWeapon", IE_Pressed, this, &ASRCharacter::DropWeapon);
+	PlayerInputComponent->BindAction("CharacterInteract", IE_Pressed, this, &ASRCharacter::InteractWith);
+	PlayerInputComponent->BindAction("CharacterSecondaryWeapon", IE_Pressed, this, &ASRCharacter::EquipSecondaryWeapon);
 
 }
 
@@ -641,7 +648,7 @@ void ASRCharacter::CrouchSlideCheckPressed()
 	}
 	if (bIsMovingForward)
 	{
-		SlideRequest = true;
+		SlideRequest = false;
 	}
 
 }
@@ -733,7 +740,7 @@ void ASRCharacter::StartSprint()
 
 	if (StanceStatus == EStanceStatus::Ess_Standing)
 	{
-		bJustPressedSprint = true;
+		//bJustPressedSprint = true;
 	}
 
 	SetStanceStatus(EStanceStatus::Ess_Standing);

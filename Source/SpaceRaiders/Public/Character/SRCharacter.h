@@ -14,6 +14,7 @@ class APlayerController;
 class ASRGun;
 class USRHealthComponent;
 class ASRPickup;
+class UCharacterMovementComponent;
 
 UENUM(BlueprintType)
 enum class EStanceStatus : uint8
@@ -99,6 +100,8 @@ public:
 	UCameraComponent* CameraComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USRHealthComponent* OwningHealthComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UCharacterMovementComponent* CharMovementComp;
 	
 	APlayerController* PlayerController;
 

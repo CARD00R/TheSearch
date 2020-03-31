@@ -9,7 +9,7 @@
 class USkeletalMeshComponent;
 class USpringArmComponent;
 class UCameraComponent;
-
+class ASRCharacter;
 UCLASS()
 class SPACERAIDERS_API ASRSpaceShip : public APawn
 {
@@ -30,7 +30,61 @@ protected:
 	USpringArmComponent* SpringArmComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* CameraComp;
-	
+
+	//Camera Variables
+	UPROPERTY(EditDefaultsOnly, Category = "Camera Variables|Rotation")
+	float CameraRotationLagSpeed = 900.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Camera Variables|Rotation")
+	float CameraLagSpeed = 700.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Camera Variables|Rotation")
+	float CameraLagMaxDistance = 5000.0f;
+
+	// Movement
+		//Methods
+	void LookUp(float value);
+	void LookRight(float value);
+	void MoveForward(float value);
+	void MoveRight(float value);
+	void RollRight(float value);
+		//Variables
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Rotation")
+	float RotationSpeed = 500.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Rotation")
+	float PitchAcceleration = 0.1f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Rotation")
+	float YawAcceleration = 0.1f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
+	float ForwardSpeed = 20000.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
+	float ForwardAcceleration = 0.1f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
+	float ForwardDeceleration = 0.007f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Backward")
+	float BackwardSpeed = 55000.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Backward")
+	float BackwardAcceleration = 0.007f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Side")
+	float RightSpeed = 6500.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Side")
+	float RightAcceleration = 0.1f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Side")
+	float RightDeceleration = 0.004f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Roll")
+	float RollSpeed = 1500.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Roll")
+	float RollAcceleration = 0.1f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Roll")
+	float RollDeceleration = 0.2f;
+		//States
+	bool bIsMovingForward;
+	bool bIsMovingRight;
+
+	// General Variables
+	FVector ZeroVector = FVector(0, 0, 0);
+
+	// Inventory
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+	ASRCharacter* Pilot;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

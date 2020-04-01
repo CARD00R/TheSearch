@@ -50,6 +50,8 @@ protected:
 	void MoveRight(float value);
 	void RollRight(float value);
 	void MoveUp(float value);
+	void BoostForwardPressed();
+	void BoostForwardReleased();
 		//Variables
 			// Physics
 	UPROPERTY(VisibleInstanceOnly, Category = "Movement Variables|Physics")
@@ -64,9 +66,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Rotation")
 	float RotationSpeed = 500.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Rotation")
-	float PitchAcceleration = 0.1f;
+	float PitchAcceleration = 0.15f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Rotation")
-	float YawAcceleration = 0.1f;
+	float YawAcceleration = 0.08f;
 			//Forward/Backward
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
 	float ForwardSpeed = 45000.0f;
@@ -75,9 +77,11 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category = "Movement Variables|Forward")
 	float TargetForwardSpeed = 45000.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
-	float ForwardAcceleration = 0.02f;
+	float ForwardAcceleration = 0.01f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
-	float ForwardDeceleration = 0.008f;
+	float ForwardDeceleration = 0.001f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
+	float BoostMultiplier = 2.5f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Backward")
 	float BackwardSpeed = 10000.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Backward")
@@ -97,11 +101,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Roll")
 	float RollSpeed = 1500.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Roll")
-	float RollAcceleration = 0.1f;
+	float RollAcceleration = 0.05f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Roll")
 	float RollDeceleration = 0.2f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Roll")
-	float AutoRollAmount = 0.3f;
+	float AutoRollAmount = 0.25f;
 			// Up
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
 		float UpSpeed = 25000.0f;
@@ -122,6 +126,8 @@ protected:
 	bool bIsMovingRight;
 	bool bIsMovingUp;
 	bool bIsMovingDown;
+	UPROPERTY(BlueprintReadOnly, Category = "Movement Variables|States")
+	bool bIsBoosting;
 
 	// General Variables
 	FVector ZeroVector = FVector(0, 0, 0);

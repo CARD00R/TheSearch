@@ -49,13 +49,18 @@ protected:
 	void MoveForward(float value);
 	void MoveRight(float value);
 	void RollRight(float value);
+	void MoveUp(float value);
 		//Variables
+			// Physics
 	UPROPERTY(VisibleInstanceOnly, Category = "Movement Variables|Physics")
 	FVector NewVelocity = FVector(0, 0, 0);
 	UPROPERTY(EditInstanceOnly, Category = "Movement Variables|Physics")
 	float ForwardLinearPhysicsAlpha = 0.1f;
 	UPROPERTY(EditInstanceOnly, Category = "Movement Variables|Physics")
 	float RightLinearPhysicsAlpha = 0.1f;
+	UPROPERTY(EditInstanceOnly, Category = "Movement Variables|Physics")
+	float UpLinearPhysicsAlpha = 0.1f;
+			// Camera
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Rotation")
 	float RotationSpeed = 500.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Rotation")
@@ -79,13 +84,13 @@ protected:
 	float BackwardAcceleration = 0.007f;
 			//Right
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Side")
-	float RightSpeed = 6500.0f;
+	float RightSpeed = 25000.0f;
 	UPROPERTY(VisibleInstanceOnly, Category = "Movement Variables|Forward")
 	float CurrentRightSpeed = 0.0f;
 	UPROPERTY(EditInstanceOnly, Category = "Movement Variables|Forward")
 	float TargetRightSpeed = 6500.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Side")
-	float RightAcceleration = 0.03f;
+	float RightAcceleration = 0.01f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Side")
 	float RightDeceleration = 0.004f;
 			// Roll
@@ -95,9 +100,28 @@ protected:
 	float RollAcceleration = 0.1f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Roll")
 	float RollDeceleration = 0.2f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Roll")
+	float AutoRollAmount = 0.3f;
+			// Up
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
+		float UpSpeed = 25000.0f;
+	UPROPERTY(VisibleInstanceOnly, Category = "Movement Variables|Forward")
+		float CurrentUpSpeed = 0.0f;
+	UPROPERTY(EditInstanceOnly, Category = "Movement Variables|Forward")
+		float TargetUpSpeed = 25000.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
+		float UpAcceleration = 0.02f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
+		float UpDeceleration = 0.008f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Backward")
+		float DownSpeed = 15000.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Backward")
+		float DownAcceleration = 0.007f;
 		//States
 	bool bIsMovingForward;
 	bool bIsMovingRight;
+	bool bIsMovingUp;
+	bool bIsMovingDown;
 
 	// General Variables
 	FVector ZeroVector = FVector(0, 0, 0);

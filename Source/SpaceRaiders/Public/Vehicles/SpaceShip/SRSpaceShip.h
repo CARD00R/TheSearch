@@ -24,10 +24,13 @@ protected:
 	virtual void BeginPlay() override;
 	
 	// Components
+		// Skeletal Mesh
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USkeletalMeshComponent* ShipMesh;
+		// Spring Arm
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USpringArmComponent* SpringArmComp;
+		// Camera
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* CameraComp;
 
@@ -47,28 +50,45 @@ protected:
 	void MoveRight(float value);
 	void RollRight(float value);
 		//Variables
+	UPROPERTY(VisibleInstanceOnly, Category = "Movement Variables|Physics")
+	FVector NewVelocity = FVector(0, 0, 0);
+	UPROPERTY(EditInstanceOnly, Category = "Movement Variables|Physics")
+	float ForwardLinearPhysicsAlpha = 0.1f;
+	UPROPERTY(EditInstanceOnly, Category = "Movement Variables|Physics")
+	float RightLinearPhysicsAlpha = 0.1f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Rotation")
 	float RotationSpeed = 500.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Rotation")
 	float PitchAcceleration = 0.1f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Rotation")
 	float YawAcceleration = 0.1f;
+			//Forward/Backward
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
-	float ForwardSpeed = 20000.0f;
+	float ForwardSpeed = 45000.0f;
+	UPROPERTY(VisibleInstanceOnly, Category = "Movement Variables|Forward")
+	float CurrentForwardSpeed = 0.0f;
+	UPROPERTY(EditInstanceOnly, Category = "Movement Variables|Forward")
+	float TargetForwardSpeed = 45000.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
-	float ForwardAcceleration = 0.1f;
+	float ForwardAcceleration = 0.02f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
-	float ForwardDeceleration = 0.007f;
+	float ForwardDeceleration = 0.008f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Backward")
-	float BackwardSpeed = 55000.0f;
+	float BackwardSpeed = 10000.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Backward")
 	float BackwardAcceleration = 0.007f;
+			//Right
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Side")
 	float RightSpeed = 6500.0f;
+	UPROPERTY(VisibleInstanceOnly, Category = "Movement Variables|Forward")
+	float CurrentRightSpeed = 0.0f;
+	UPROPERTY(EditInstanceOnly, Category = "Movement Variables|Forward")
+	float TargetRightSpeed = 6500.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Side")
-	float RightAcceleration = 0.1f;
+	float RightAcceleration = 0.03f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Side")
 	float RightDeceleration = 0.004f;
+			// Roll
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Roll")
 	float RollSpeed = 1500.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Roll")

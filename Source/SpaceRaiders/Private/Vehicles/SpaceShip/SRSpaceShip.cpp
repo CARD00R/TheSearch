@@ -28,11 +28,12 @@ ASRSpaceShip::ASRSpaceShip()
 	ShipMesh->SetNotifyRigidBodyCollision(true);
 	// Spring Arm
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArmComp->SetupAttachment(RootComponent);
 	SpringArmComp->bEnableCameraLag = true;
 	SpringArmComp->bEnableCameraRotationLag = true;
-	SpringArmComp->CameraRotationLagSpeed = CameraRotationLagSpeed;
-	SpringArmComp->CameraLagMaxDistance = CameraLagMaxDistance;
-	SpringArmComp->CameraLagSpeed = CameraLagSpeed;
+	SpringArmComp->CameraRotationLagSpeed = 100.0f;
+	SpringArmComp->CameraLagMaxDistance = 5000.0f;
+	SpringArmComp->CameraLagSpeed = 100.0f;
 
 	// Camera
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
@@ -44,6 +45,7 @@ ASRSpaceShip::ASRSpaceShip()
 void ASRSpaceShip::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 // Called every frame
@@ -93,58 +95,60 @@ void ASRSpaceShip::LookRight(float value)
 
 void ASRSpaceShip::MoveForward(float value)
 {
-	float VelocityChange = 0.0f;
+	CurrentForwardSpeed = FMath::Lerp(CurrentForwardSpeed, TargetForwardSpeed, ForwardLinearPhysicsAlpha);
 	
 	FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
-	FVector TargetLinearVelocity = GetActorForwardVector() *
-		FMath::Clamp(value*ForwardSpeed, -ForwardSpeed, ForwardSpeed);
 
+	FVector TargetLinearVelocity = GetActorForwardVector() * (value*CurrentForwardSpeed);
+
+	
+	//FVector NewVelocity = ZeroVector;
 	if(value != 0)
 	{
 		if(value > 0)
 		{
-			VelocityChange = ForwardAcceleration;
+			TargetForwardSpeed = ForwardSpeed;
+			ForwardLinearPhysicsAlpha = ForwardAcceleration;
 		}
 		else
 		{
-			VelocityChange = BackwardAcceleration;
+			TargetForwardSpeed = BackwardSpeed;
+			ForwardLinearPhysicsAlpha = BackwardAcceleration;
 		}
 	}
 	else
 	{
-		VelocityChange = ForwardDeceleration;
+		TargetForwardSpeed = 0;
+		ForwardLinearPhysicsAlpha = ForwardDeceleration;
 	}
 	
-	FVector NewVelocity = FMath::Lerp(CurrentLinearVelocity, TargetLinearVelocity, VelocityChange);
+	NewVelocity = FMath::Lerp(CurrentLinearVelocity, TargetLinearVelocity, ForwardLinearPhysicsAlpha);
+	
 	ShipMesh->SetPhysicsLinearVelocity(NewVelocity, false, NAME_None);
-
-	//UE_LOG(LogTemp, Warning, TEXT("Moving Forward!"));
-
-	float Speed = NewVelocity.Size();
-	UE_LOG(LogTemp, Warning, TEXT("Speed %f"), Speed);
 }
 
 void ASRSpaceShip::MoveRight(float value)
 {
-	float VelocityChange = 0.0f;
-	
+	CurrentRightSpeed = FMath::Lerp(CurrentRightSpeed, TargetRightSpeed, RightLinearPhysicsAlpha);
+
 	FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
-	FVector TargetLinearVelocity = GetActorRightVector() *
-		FMath::Clamp(value*RightSpeed, -RightSpeed, RightSpeed);
+
+	FVector TargetLinearVelocity = GetActorRightVector() * (value*CurrentRightSpeed);
+
 	if (value != 0)
 	{
-		VelocityChange = RightAcceleration;
+		TargetRightSpeed = RightSpeed;
+		RightLinearPhysicsAlpha = RightAcceleration;
 	}
 	else
 	{
-		VelocityChange = RightDeceleration;
+		TargetRightSpeed = 0;
+		RightLinearPhysicsAlpha = RightDeceleration;
 	}
 
-	FVector NewVelocity = FMath::Lerp(CurrentLinearVelocity, TargetLinearVelocity, VelocityChange);
-	ShipMesh->SetPhysicsLinearVelocity(NewVelocity, false, NAME_None);
+	NewVelocity = FMath::Lerp(CurrentLinearVelocity, TargetLinearVelocity, RightLinearPhysicsAlpha);
 
-	
-	//UE_LOG(LogTemp, Warning, TEXT("Moving Right!"));
+	ShipMesh->SetPhysicsLinearVelocity(NewVelocity, false, NAME_None);
 }
 
 void ASRSpaceShip::RollRight(float value)

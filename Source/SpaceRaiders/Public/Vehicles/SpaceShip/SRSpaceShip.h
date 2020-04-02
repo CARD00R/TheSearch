@@ -36,11 +36,11 @@ protected:
 
 	//Camera Variables
 	UPROPERTY(EditDefaultsOnly, Category = "Camera Variables|Rotation")
-	float CameraRotationLagSpeed = 900.0f;
+	float CameraRotationLagSpeed = 10.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Camera Variables|Rotation")
-	float CameraLagSpeed = 700.0f;
+	float CameraLagSpeed = 40.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Camera Variables|Rotation")
-	float CameraLagMaxDistance = 5000.0f;
+	float CameraLagMaxDistance = 2000.0f;
 
 	// Movement
 		//Methods
@@ -52,7 +52,12 @@ protected:
 	void MoveUp(float value);
 	void BoostForwardPressed();
 	void BoostForwardReleased();
-		//Variables
+
+	// Camera Methods
+	void FreeLookOn();
+	void FreeLookOff();
+
+	//Variables
 			// Physics
 	UPROPERTY(VisibleInstanceOnly, Category = "Movement Variables|Physics")
 	FVector NewVelocity = FVector(0, 0, 0);
@@ -71,7 +76,7 @@ protected:
 	float YawAcceleration = 0.08f;
 			//Forward/Backward
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
-	float ForwardSpeed = 45000.0f;
+	float ForwardSpeed = 80000.0f;
 	UPROPERTY(VisibleInstanceOnly, Category = "Movement Variables|Forward")
 	float CurrentForwardSpeed = 0.0f;
 	UPROPERTY(EditInstanceOnly, Category = "Movement Variables|Forward")
@@ -81,7 +86,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
 	float ForwardDeceleration = 0.001f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
-	float BoostMultiplier = 2.5f;
+	float BoostMultiplier = 1.75f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Backward")
 	float BackwardSpeed = 10000.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Backward")
@@ -107,19 +112,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Roll")
 	float AutoRollAmount = 0.25f;
 			// Up
-	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Up")
 		float UpSpeed = 25000.0f;
-	UPROPERTY(VisibleInstanceOnly, Category = "Movement Variables|Forward")
+	UPROPERTY(VisibleInstanceOnly, Category = "Movement Variables|Up")
 		float CurrentUpSpeed = 0.0f;
-	UPROPERTY(EditInstanceOnly, Category = "Movement Variables|Forward")
+	UPROPERTY(EditInstanceOnly, Category = "Movement Variables|Up")
 		float TargetUpSpeed = 25000.0f;
-	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
-		float UpAcceleration = 0.02f;
-	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Forward")
-		float UpDeceleration = 0.008f;
-	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Backward")
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Up")
+		float UpAcceleration = 0.01f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Up")
+		float UpDeceleration = 0.004f;
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Down")
 		float DownSpeed = 15000.0f;
-	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Backward")
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Variables|Down")
 		float DownAcceleration = 0.007f;
 		//States
 	bool bIsMovingForward;

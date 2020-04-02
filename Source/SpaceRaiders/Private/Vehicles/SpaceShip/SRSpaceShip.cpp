@@ -31,9 +31,9 @@ ASRSpaceShip::ASRSpaceShip()
 	SpringArmComp->SetupAttachment(RootComponent);
 	SpringArmComp->bEnableCameraLag = true;
 	SpringArmComp->bEnableCameraRotationLag = true;
-	SpringArmComp->CameraRotationLagSpeed = 100.0f;
-	SpringArmComp->CameraLagMaxDistance = 5000.0f;
-	SpringArmComp->CameraLagSpeed = 100.0f;
+	SpringArmComp->CameraRotationLagSpeed = CameraRotationLagSpeed;
+	SpringArmComp->CameraLagMaxDistance = CameraLagMaxDistance;
+	SpringArmComp->CameraLagSpeed = CameraLagSpeed;
 
 	// Camera
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
@@ -72,7 +72,8 @@ void ASRSpaceShip::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	// Action Mappings
 	PlayerInputComponent->BindAction("ShipBoost", IE_Pressed, this, &ASRSpaceShip::BoostForwardPressed);
 	PlayerInputComponent->BindAction("ShipBoost", IE_Released, this, &ASRSpaceShip::BoostForwardReleased);
-
+	PlayerInputComponent->BindAction("ShipFreeLook", IE_Pressed, this, &ASRSpaceShip::FreeLookOn);
+	PlayerInputComponent->BindAction("ShipFreeLook", IE_Released, this, &ASRSpaceShip::FreeLookOff);
 }
 
 #pragma region Input 
@@ -348,3 +349,12 @@ void ASRSpaceShip::BoostForwardReleased()
 }
 #pragma endregion 
 
+void ASRSpaceShip::FreeLookOn()
+{
+	bUseControllerRotationYaw = false;
+}
+
+void ASRSpaceShip::FreeLookOff()
+{
+	bUseControllerRotationYaw = true;
+}

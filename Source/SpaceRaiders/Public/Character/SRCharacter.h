@@ -285,8 +285,6 @@ protected:
 	bool bChangeFOV = false;
 	void PullTrigger();
 	void ReleaseTrigger();
-	UPROPERTY(EditDefaultsOnly, Category= "Weapon")
-	TSubclassOf<ASRGun> StarterWeaponClass;
 	UPROPERTY(VisibleDefaultsOnly, Category= "Weapon")
 	FName WeaponAttachSocketName = "StarterGunSocket";
 	FName WeaponHolsterSocketName = "HolsterPistolSocket";
@@ -302,6 +300,16 @@ protected:
 	ASRGun* PrimaryWeapon;
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
 	ASRGun* SecondaryWeapon;
+
+	// AI
+		// Variables
+	UPROPERTY(EditAnywhere, Category = "AI")
+	TSubclassOf<class ASRGun> AIGun;
+
+	
+		//Methods
+	void AISpawnAndEquipWeapon();
+	
 	
 	//Input
 	void GlobalKeysInputDisable();

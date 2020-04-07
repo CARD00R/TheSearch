@@ -84,6 +84,14 @@ void ASRCharacter::BeginPlay()
 	Super::BeginPlay();
 	OwningHealthComp->OnHealthChanged.AddDynamic(this, &ASRCharacter::OnHealthChanged);
 	CharMovementComp = GetCharacterMovement();
+
+
+	// AI
+
+	if(AIGun)
+	{
+		AISpawnAndEquipWeapon();
+	}
 }
 
 // Called every frame
@@ -1604,3 +1612,20 @@ EGunStatus ASRCharacter::GetGunStatus()
 
 #pragma endregion 
 
+#pragma region AI
+void ASRCharacter::AISpawnAndEquipWeapon()
+{
+	if(AIGun)
+	{
+		UWorld* world = GetWorld();
+		FActorSpawnParameters spawnParams;
+		spawnParams.Owner = this;
+		FRotator rotator;
+		FVector spawnLocation = this->GetActorLocation();
+		
+		ASRGun* spawnedAIGun = world->SpawnActor<ASRGun>(AIGun, spawnLocation, rotator, spawnParams);
+		PickUpWeapon(spawnedAIGun);
+	}
+	
+}
+#pragma endregion 

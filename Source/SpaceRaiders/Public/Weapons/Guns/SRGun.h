@@ -110,7 +110,9 @@ protected:
 	void Fire();
 	float LastFiredTime;
 	float TimeBetweenShots;
-
+	//Bullet Spread in Degrees
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (ClampMin=0.0))
+	float BulletSpread;
 	//Reload
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	float MagSize;

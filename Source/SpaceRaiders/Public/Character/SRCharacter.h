@@ -273,9 +273,7 @@ protected:
 	//Aim/Weapons
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	bool bGunHolstered = false;
-	void AimPressed();
 
-	void AimReleased();
 	void EquipPrimaryWeapon();
 	void EquipSecondaryWeapon();
 	float ADSCameraFOV = 60.0f;
@@ -283,8 +281,7 @@ protected:
 	void SetCameraFOV(float DeltaTime);
 	float ZoomInterpSpeed = 7.0f;
 	bool bChangeFOV = false;
-	void PullTrigger();
-	void ReleaseTrigger();
+
 	UPROPERTY(VisibleDefaultsOnly, Category= "Weapon")
 	FName WeaponAttachSocketName = "StarterGunSocket";
 	FName WeaponHolsterSocketName = "HolsterPistolSocket";
@@ -348,6 +345,14 @@ public:
 	void SetProximityGunPickUp(ASRGun* Gun);
 	void SetProxmityUtilityPickup(ASRPickup*  UtilityPickup);
 	bool bAimPressed = false;
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void PullTrigger();
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void ReleaseTrigger();
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void AimPressed();
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void AimReleased();
 
 	// Anim Notify
 	void AnimNotifyUnHolster();

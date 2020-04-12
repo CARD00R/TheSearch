@@ -36,6 +36,7 @@ ASRGun::ASRGun()
 	MuzzleSocketName = "MuzzleSocket";
 	TracerTargetName = "Target";
 	IsPickedUp = true;
+	BulletSpread = 2.0f;
 }
 
 void ASRGun::BeginPlay()
@@ -73,6 +74,11 @@ void ASRGun::Fire()
 			MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
 			FVector ShotDirection = EyeRotation.Vector();
+
+			// Bullet Spread
+			float HalfRad = FMath::DegreesToRadians(BulletSpread);
+			ShotDirection = FMath::VRandCone(ShotDirection, HalfRad, HalfRad);
+			
 			FVector TraceEnd = EyeLocation + (ShotDirection * 10000);
 
 			FCollisionQueryParams QueryParams;

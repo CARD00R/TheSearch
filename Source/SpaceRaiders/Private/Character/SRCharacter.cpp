@@ -42,7 +42,7 @@ ASRCharacter::ASRCharacter()
 	GetCapsuleComponent()->SetCapsuleRadius(20.0f);
 	
 	//HealthComp
-	OwningHealthComp = CreateDefaultSubobject<USRHealthComponent>(TEXT("HealthComp"));
+	OwningHealthComp = CreateDefaultSubobject<USRHealthComponent>(TEXT("OwningHealthComp"));
 	
 	//Movement Component
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
@@ -76,6 +76,8 @@ ASRCharacter::ASRCharacter()
 	// Aim Released
 	bGunHolstered = true;
 	SetGunStatus(EGunStatus::Egs_Nis);
+
+	SetActorTickInterval(0.03);
 }
 
 // Called when the game starts or when spawned
@@ -1245,6 +1247,7 @@ void ASRCharacter::AnimNotifyHolster()
 		UE_LOG(LogTemp, Error, TEXT("NOT WORKING"));
 	}
 }
+
 #pragma endregion 
 
 // Weapon & Aim
@@ -1624,8 +1627,25 @@ void ASRCharacter::AISpawnAndEquipWeapon()
 		FVector spawnLocation = this->GetActorLocation();
 		
 		ASRGun* spawnedAIGun = world->SpawnActor<ASRGun>(AIGun, spawnLocation, rotator, spawnParams);
+		
 		PickUpWeapon(spawnedAIGun);
+		
+	//	bGunHolstered = true;
 	}
 	
 }
+
+void ASRCharacter::AISprintStart()
+{
+}
+void ASRCharacter::AISprintStop()
+{
+}
+void ASRCharacter::AIADS()
+{
+}
+void ASRCharacter::AIUnADS()
+{
+}
 #pragma endregion 
+

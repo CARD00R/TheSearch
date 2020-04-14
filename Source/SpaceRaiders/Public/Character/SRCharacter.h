@@ -216,10 +216,9 @@ protected:
 	void SetCharacterMovementSpeed(float MoveSpeed);
 	float GetCharacterMovementSpeed();
 
-
-	// Sprint
 	void StartSprint();
 	void SprintReleased();
+	// Sprint
 	void EndSprint();
 	void JustPressedSprint();
 	float EndSprintDelay=0.7f;
@@ -271,7 +270,7 @@ protected:
 	bool bShouldRollLand = false;
 
 	//Aim/Weapons
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	bool bGunHolstered = false;
 
 	void EquipPrimaryWeapon();
@@ -344,6 +343,7 @@ public:
 	ASRGun* EquippedWeapon;
 	void SetProximityGunPickUp(ASRGun* Gun);
 	void SetProxmityUtilityPickup(ASRPickup*  UtilityPickup);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Weapon")
 	bool bAimPressed = false;
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void PullTrigger();
@@ -360,5 +360,12 @@ public:
 	void AnimNotifyHolsterSecondaryGun();
 	void AnimNotifyHolsterPrimaryGun();
 	void AnimNotifyHolster();
-	
+
+	// Movement AI
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void AISprintStart();
+	void AISprintStop();
+	void AIADS();
+	void AIUnADS();
+
 };

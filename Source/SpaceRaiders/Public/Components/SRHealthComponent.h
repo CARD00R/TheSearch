@@ -17,6 +17,9 @@ class SPACERAIDERS_API USRHealthComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	USRHealthComponent();
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Health Component")
+	uint8 TeamNum;
 
 protected:
 	// Called when the game starts
@@ -36,5 +39,8 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, Category= "Events")
 	FOnHealthChangedSignature OnHealthChanged;
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Health Component")
+	static bool IsFriendly(AActor* ActorA, AActor* ActorB);
 		
 };

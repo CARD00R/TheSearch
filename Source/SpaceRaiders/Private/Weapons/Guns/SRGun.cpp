@@ -109,7 +109,7 @@ void ASRGun::Fire()
 				}
 				if (HitActor)
 				{
-					UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
+					UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), MyOwner, DamageType);
 				}
 
 				// Obtains surface type from hit object

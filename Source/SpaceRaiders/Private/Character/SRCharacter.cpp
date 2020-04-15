@@ -1637,15 +1637,28 @@ void ASRCharacter::AISpawnAndEquipWeapon()
 
 void ASRCharacter::AISprintStart()
 {
+	SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+	SetCharacterMovementSpeed(SprintSpeed);
 }
 void ASRCharacter::AISprintStop()
 {
+	SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+	SetCharacterMovementSpeed(JogSpeed);
 }
 void ASRCharacter::AIADS()
 {
+	SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+	SetCharacterMovementSpeed(JogSpeed);
+	bAimPressed = true;
+	SetGunStatus(EGunStatus::Egs_ADSing);
+	
 }
 void ASRCharacter::AIUnADS()
 {
+	SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+	SetCharacterMovementSpeed(JogSpeed);
+	bAimPressed = true;
+	SetGunStatus(EGunStatus::Egs_ADSing);
 }
 #pragma endregion 
 

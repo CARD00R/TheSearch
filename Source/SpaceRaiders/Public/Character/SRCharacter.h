@@ -364,8 +364,11 @@ public:
 	// Movement AI
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void AISprintStart();
+	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void AISprintStop();
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void AIADS();
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void AIUnADS();
 
 };

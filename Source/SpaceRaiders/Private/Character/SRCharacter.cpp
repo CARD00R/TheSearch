@@ -1656,7 +1656,7 @@ void ASRCharacter::AIADS()
 void ASRCharacter::AIUnADS()
 {
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
-	SetCharacterMovementSpeed(JogSpeed);
+	SetCharacterMovementSpeed(speed);
 	bAimPressed = true;
 	SetGunStatus(EGunStatus::Egs_ADSing);
 }

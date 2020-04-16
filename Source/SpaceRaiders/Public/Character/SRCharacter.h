@@ -213,7 +213,8 @@ protected:
 	float CrouchSpeed = 300.0f;
 	float WalkSpeed = 400;
 	float RollSpeed = 750;
-	void SetCharacterMovementSpeed(float MoveSpeed);
+	
+
 	float GetCharacterMovementSpeed();
 
 	void StartSprint();
@@ -366,9 +367,12 @@ public:
 	void AISprintStart();
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void AISprintStop();
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void SetCharacterMovementSpeed(float MoveSpeed);
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void AIADS();
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void AIUnADS();
+
 
 };

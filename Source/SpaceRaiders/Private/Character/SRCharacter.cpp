@@ -1637,28 +1637,39 @@ void ASRCharacter::AISpawnAndEquipWeapon()
 
 void ASRCharacter::AISprintStart()
 {
-	SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
 	SetCharacterMovementSpeed(SprintSpeed);
+	SetStanceStatus(EStanceStatus::Ess_Standing);
+	SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
+	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+
+	SetGunStatus(EGunStatus::Egs_Nis);
+	
 }
 void ASRCharacter::AISprintStop()
 {
-	SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
 	SetCharacterMovementSpeed(JogSpeed);
+	SetStanceStatus(EStanceStatus::Ess_Standing);
+	SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+
+	SetGunStatus(EGunStatus::Egs_Nis);
+	
 }
 void ASRCharacter::AIADS()
 {
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
-	SetCharacterMovementSpeed(JogSpeed);
+	SetCharacterMovementSpeed(WalkSpeed);
 	bAimPressed = true;
 	SetGunStatus(EGunStatus::Egs_ADSing);
+	SetCharacterMovementSpeed(WalkSpeed);
 	
 }
 void ASRCharacter::AIUnADS()
 {
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
-	SetCharacterMovementSpeed(speed);
+	SetCharacterMovementSpeed(JogSpeed);
 	bAimPressed = true;
-	SetGunStatus(EGunStatus::Egs_ADSing);
+	SetGunStatus(EGunStatus::Egs_Nis);
 }
 #pragma endregion 
 

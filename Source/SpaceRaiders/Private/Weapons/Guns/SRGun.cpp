@@ -101,15 +101,26 @@ void ASRGun::Fire()
 				float ActualDamage = BaseDamage;
 				if (ObjectSurfaceType == SURFACE_CHARHEAD)
 				{
-					ActualDamage *= 5.0f;
+					ActualDamage *= 3.0f;
 				}
 				else if (ObjectSurfaceType == SURFACE_CHARCHEST)
 				{
-					ActualDamage *= 2.0f;
+					ActualDamage *= 1.3f;
 				}
 				if (HitActor)
 				{
+					ASRCharacter* MyTarget = Cast<ASRCharacter>(HitActor);
+					if(MyTarget)
+					{
+						MyTarget->HitLocation = Hit.Location;
+						MyTarget->HitDireciton = ShotDirection;
+						MyTarget->HitForce = BulletForce;
+						MyTarget->HitBoneName = Hit.BoneName;
+						
+					}
+				
 					UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), MyOwner, DamageType);
+					
 				}
 
 				// Obtains surface type from hit object
@@ -191,7 +202,8 @@ void ASRGun::StartFire()
 	}
 	else
 	{
-		//*click click* No ammo in clip
+		ASRCharacter* MyCharacter = Cast<ASRCharacter>(GetOwner());
+		MyCharacter->ReloadRequest();
 	}
 }
 

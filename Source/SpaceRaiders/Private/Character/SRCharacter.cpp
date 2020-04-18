@@ -78,6 +78,8 @@ ASRCharacter::ASRCharacter()
 	SetGunStatus(EGunStatus::Egs_Nis);
 
 	SetActorTickInterval(0.03);
+
+	HitForce = 15000.0f;
 }
 
 // Called when the game starts or when spawned
@@ -977,6 +979,8 @@ void ASRCharacter::SetCharacterMovementSpeed(float MoveSpeed)
 	GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 }
 
+
+
 float ASRCharacter::GetCharacterMovementSpeed()
 {
 	return GetCharacterMovement()->MaxWalkSpeed;
@@ -1116,12 +1120,28 @@ void ASRCharacter::OnHealthChanged(USRHealthComponent* HealthComp, float Health,
 {
 	if(Health <= 0.0f)
 	{
-		// DIE
+			// Movement Comp
 		GetMovementComponent()->StopMovementImmediately();
+		GetMovementComponent()->SetComponentTickEnabled(false);
+			// Collision
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+			// Mesh
+		GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+			// Ragdoll
+		GetMesh()->SetAllBodiesSimulatePhysics(true);
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->WakeAllRigidBodies();
+		GetMesh()->bBlendPhysics = true;
+		
+		SetActorEnableCollision(true);
 		SetStanceStatus(EStanceStatus::Ess_Dead);
 		GlobalKeysInputDisable();
 		SpringArmComp->bUsePawnControlRotation = true;
+
+		//GetMesh()->AddImpulseAtLocation(HitDireciton * HitForce, HitLocation);
+		GetMesh()->AddImpulseAtLocation(HitDireciton * HitForce, HitLocation, HitBoneName);
+		
 	}
 }
 
@@ -1637,7 +1657,7 @@ void ASRCharacter::AISpawnAndEquipWeapon()
 
 void ASRCharacter::AISprintStart()
 {
-	SetCharacterMovementSpeed(SprintSpeed);
+	SetCharacterMovementSpeed(DefaultSprintSpeed);
 	SetStanceStatus(EStanceStatus::Ess_Standing);
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Sprinting);
 	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
@@ -1669,6 +1689,15 @@ void ASRCharacter::AIUnADS()
 	SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
 	SetCharacterMovementSpeed(JogSpeed);
 	bAimPressed = true;
+	SetGunStatus(EGunStatus::Egs_Nis);
+}
+void ASRCharacter::AISlowRun(float ReductionValue)
+{
+	SetCharacterMovementSpeed(DefaultSprintSpeed - ReductionValue);
+	SetStanceStatus(EStanceStatus::Ess_Standing);
+	SetStandingMovementStatus(EStandingMovementStatus::Esms_Jogging);
+	SetCrouchingMovementStatus(ECrouchingMovementStatus::Ecms_Nis);
+
 	SetGunStatus(EGunStatus::Egs_Nis);
 }
 #pragma endregion 

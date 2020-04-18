@@ -285,7 +285,7 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, Category= "Weapon")
 	FName WeaponAttachSocketName = "StarterGunSocket";
 	FName WeaponHolsterSocketName = "HolsterPistolSocket";
-	void ReloadRequest();
+
 	void Reload();
 	void DropWeapon();
 	void PickUpWeapon(ASRGun* WeaponToPickup);
@@ -369,10 +369,23 @@ public:
 	void AISprintStop();
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void SetCharacterMovementSpeed(float MoveSpeed);
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void AISlowRun(float ReductionValue);
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void AIADS();
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void AIUnADS();
+	void ReloadRequest();
 
+	// Weapon Affecting Character
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death")
+	FVector HitLocation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death")
+	FVector HitDireciton;
+
+	float HitForce;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death")
+	FName HitBoneName;
 
 };

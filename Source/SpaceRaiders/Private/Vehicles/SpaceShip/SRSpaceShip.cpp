@@ -7,6 +7,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/PrimitiveComponent.h"
+#include "Components/SphereComponent.h"
+#include "Public/Character/SRCharacter.h"
 
 // Sets default values
 ASRSpaceShip::ASRSpaceShip()
@@ -39,12 +41,25 @@ ASRSpaceShip::ASRSpaceShip()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false;
+
+	// Interactive Collision
+	InteractCollision = CreateDefaultSubobject<USphereComponent>(TEXT("PickUpCollision"));
+	InteractCollision->SetupAttachment(RootComponent);
+	InteractCollision->SetSphereRadius(700.0f);
+
+	// Spawn Zone
+	ExitShipZone = CreateDefaultSubobject<USceneComponent>(TEXT("ExitShipZone"));
+	ExitShipZone->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
 void ASRSpaceShip::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Pick Up Coll
+	InteractCollision->OnComponentBeginOverlap.AddDynamic(this, &ASRSpaceShip::OnOverlapBegin);
+	InteractCollision->OnComponentEndOverlap.AddDynamic(this, &ASRSpaceShip::OnOverlapEnd);
 }
 
 // Called every frame
@@ -54,6 +69,25 @@ void ASRSpaceShip::Tick(float DeltaTime)
 	//
 	FVector Torque = (-ShipMesh->GetPhysicsAngularVelocityInDegrees(NAME_None)) / 1.0f;
 	ShipMesh->AddTorqueInDegrees(Torque, NAME_None, true);
+	
+	if (!bShipOff)
+	{
+
+	}
+	else
+	{
+		if(PilotClass)
+		{
+			LookUp(0);
+			LookRight(0);
+			MoveForward(0);
+			MoveRight(0);
+			RollRight(0);
+			MoveUp(0);
+			BoostForwardReleased();
+			ShipMesh->SetPhysicsLinearVelocity(FVector(0, 0, 0), false, NAME_None);
+		}
+	}
 }
 
 void ASRSpaceShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -68,284 +102,357 @@ void ASRSpaceShip::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAxis("ShipMoveRight", this, &ASRSpaceShip::MoveRight);
 	PlayerInputComponent->BindAxis("ShipRollRight", this, &ASRSpaceShip::RollRight);
 	PlayerInputComponent->BindAxis("ShipMoveUp", this, &ASRSpaceShip::MoveUp);
-
+	
 	// Action Mappings
 	PlayerInputComponent->BindAction("ShipBoost", IE_Pressed, this, &ASRSpaceShip::BoostForwardPressed);
 	PlayerInputComponent->BindAction("ShipBoost", IE_Released, this, &ASRSpaceShip::BoostForwardReleased);
 	PlayerInputComponent->BindAction("ShipFreeLook", IE_Pressed, this, &ASRSpaceShip::FreeLookOn);
 	PlayerInputComponent->BindAction("ShipFreeLook", IE_Released, this, &ASRSpaceShip::FreeLookOff);
+	PlayerInputComponent->BindAction("ShipInteract", IE_Pressed, this, &ASRSpaceShip::ExitShip);
+}
+
+
+void ASRSpaceShip::ExitShip()
+{
+	{
+		if (PilotClass)
+		{
+			UWorld* world = GetWorld();
+			FActorSpawnParameters spawnParams;
+			FRotator rotator;
+			FVector spawnLocation;
+
+			if (ExitShipZone)
+			{
+				spawnLocation = ExitShipZone->GetComponentLocation();
+			}
+			else
+			{
+				spawnLocation = GetActorLocation();
+			}
+
+			ASRCharacter* player = world->SpawnActor<ASRCharacter>(PilotClass, spawnLocation, rotator, spawnParams);
+
+			bShipOff = true;
+		}
+		
+	}
+}
+
+void ASRSpaceShip::OnOverlapBegin(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	ASRCharacter* myCharacter = Cast<ASRCharacter>(OtherActor);
+	myCharacter->SetShip(this);
+	PilotCloseby = myCharacter;
+	
+}
+
+void ASRSpaceShip::OnOverlapEnd(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex)
+{
+	ASRCharacter* myCharacter = Cast<ASRCharacter>(OtherActor);
+	myCharacter->SetShip(nullptr);
+	PilotCloseby = nullptr;
 }
 
 #pragma region Input 
 void ASRSpaceShip::LookUp(float value)
 {
-	FVector Torque = FMath::Lerp(ZeroVector, 
-		GetActorRightVector() * (value * RotationSpeed),
-		PitchAcceleration);
-	ShipMesh->AddTorqueInDegrees(Torque, NAME_None, true);
+	if(!bShipOff)
+	{
+		FVector Torque = FMath::Lerp(ZeroVector,
+			GetActorRightVector() * (value * RotationSpeed),
+			PitchAcceleration);
+		ShipMesh->AddTorqueInDegrees(Torque, NAME_None, true);
 
-	//UE_LOG(LogTemp, Warning, TEXT("Looking Up!"));
+		//UE_LOG(LogTemp, Warning, TEXT("Looking Up!"));
+	}
+
 }
 
 void ASRSpaceShip::LookRight(float value)
 {
-	FVector Torque = FMath::Lerp(ZeroVector, 
-		GetActorUpVector() * (value * RotationSpeed),
-		YawAcceleration);
-	
-	ShipMesh->AddTorqueInDegrees(Torque, NAME_None, true);
-	
-	if (value > 0)
+	if (!bShipOff)
 	{
-		RollRight(-AutoRollAmount);
-	}
-	else if (value < 0)
-	{
-		RollRight(AutoRollAmount);
+
+		FVector Torque = FMath::Lerp(ZeroVector,
+			GetActorUpVector() * (value * RotationSpeed),
+			YawAcceleration);
+
+		ShipMesh->AddTorqueInDegrees(Torque, NAME_None, true);
+
+		if (value > 0)
+		{
+			RollRight(-AutoRollAmount);
+		}
+		else if (value < 0)
+		{
+			RollRight(AutoRollAmount);
+		}
 	}
 }
 
 void ASRSpaceShip::MoveForward(float value)
 {
-	if(bIsBoosting)
+	if (!bShipOff)
 	{
-		CurrentForwardSpeed = FMath::Lerp(CurrentForwardSpeed, TargetForwardSpeed*BoostMultiplier, ForwardLinearPhysicsAlpha*BoostMultiplier);
-
-		FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
-
-		FVector TargetLinearVelocity = GetActorForwardVector() * FMath::Clamp(value*CurrentForwardSpeed, -BackwardSpeed, ForwardSpeed*BoostMultiplier);
-
-		// Moving forwards or backwards
-		if (value != 0)
+		if (bIsBoosting)
 		{
-			bIsMovingForward = true;
-			//moving forwards
-			if (value > 0)
+			CurrentForwardSpeed = FMath::Lerp(CurrentForwardSpeed, TargetForwardSpeed*BoostMultiplier, ForwardLinearPhysicsAlpha*BoostMultiplier);
+
+			FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
+
+			FVector TargetLinearVelocity = GetActorForwardVector() * FMath::Clamp(value*CurrentForwardSpeed, -BackwardSpeed, ForwardSpeed*BoostMultiplier);
+
+			// Moving forwards or backwards
+			if (value != 0)
 			{
-				// not moving right
-				if (!bIsMovingRight)
+				bIsMovingForward = true;
+				//moving forwards
+				if (value > 0)
 				{
-					TargetForwardSpeed = ForwardSpeed* BoostMultiplier;
+					// not moving right
+					if (!bIsMovingRight)
+					{
+						TargetForwardSpeed = ForwardSpeed * BoostMultiplier;
+					}
+					// is moving right
+					else
+					{
+						TargetForwardSpeed = (ForwardSpeed* BoostMultiplier) * 1.5f;
+					}
+
+					ForwardLinearPhysicsAlpha = ForwardAcceleration * BoostMultiplier;
 				}
-				// is moving right
+				//moving backwards
 				else
 				{
-					TargetForwardSpeed = (ForwardSpeed* BoostMultiplier) * 1.5f;
-				}
+					bIsBoosting = false;
+					//not moving right
+					if (!bIsMovingRight)
+					{
+						TargetForwardSpeed = BackwardSpeed;
+					}
+					// is moving right
+					else
+					{
+						TargetForwardSpeed = ForwardSpeed * 1.5f;
+					}
 
-				ForwardLinearPhysicsAlpha = ForwardAcceleration* BoostMultiplier;
+					ForwardLinearPhysicsAlpha = BackwardAcceleration;
+				}
 			}
-			//moving backwards
+			// not moving forwards or backwards
 			else
 			{
-				bIsBoosting = false;
-				//not moving right
-				if (!bIsMovingRight)
-				{
-					TargetForwardSpeed = BackwardSpeed;
-				}
-				// is moving right
-				else
-				{
-					TargetForwardSpeed = ForwardSpeed * 1.5f;
-				}
-
-				ForwardLinearPhysicsAlpha = BackwardAcceleration;
+				TargetForwardSpeed = 0;
+				ForwardLinearPhysicsAlpha = ForwardDeceleration;
+				bIsMovingForward = false;
 			}
+
+			NewVelocity = FMath::Lerp(CurrentLinearVelocity, TargetLinearVelocity, ForwardLinearPhysicsAlpha);
+			ShipMesh->SetPhysicsLinearVelocity(NewVelocity, false, NAME_None);
 		}
-		// not moving forwards or backwards
 		else
 		{
-			TargetForwardSpeed = 0;
-			ForwardLinearPhysicsAlpha = ForwardDeceleration;
-			bIsMovingForward = false;
-		}
+			CurrentForwardSpeed = FMath::Lerp(CurrentForwardSpeed, TargetForwardSpeed, ForwardLinearPhysicsAlpha);
 
-		NewVelocity = FMath::Lerp(CurrentLinearVelocity, TargetLinearVelocity, ForwardLinearPhysicsAlpha);
-		ShipMesh->SetPhysicsLinearVelocity(NewVelocity, false, NAME_None);
-	}
-	else
-	{
-		CurrentForwardSpeed = FMath::Lerp(CurrentForwardSpeed, TargetForwardSpeed, ForwardLinearPhysicsAlpha);
+			FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
 
-		FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
+			FVector TargetLinearVelocity = GetActorForwardVector() * FMath::Clamp(value*CurrentForwardSpeed, -BackwardSpeed, ForwardSpeed);
 
-		FVector TargetLinearVelocity = GetActorForwardVector() * FMath::Clamp(value*CurrentForwardSpeed, -BackwardSpeed, ForwardSpeed);
-
-		// Moving forwards or backwards
-		if (value != 0)
-		{
-			bIsMovingForward = true;
-			//moving forwards
-			if (value > 0)
+			// Moving forwards or backwards
+			if (value != 0)
 			{
-				// not moving right
-				if (!bIsMovingRight)
+				bIsMovingForward = true;
+				//moving forwards
+				if (value > 0)
 				{
-					TargetForwardSpeed = ForwardSpeed;
+					// not moving right
+					if (!bIsMovingRight)
+					{
+						TargetForwardSpeed = ForwardSpeed;
+					}
+					// is moving right
+					else
+					{
+						TargetForwardSpeed = ForwardSpeed * 1.5f;
+					}
+
+					ForwardLinearPhysicsAlpha = ForwardAcceleration;
 				}
-				// is moving right
+				//moving backwards
 				else
 				{
-					TargetForwardSpeed = ForwardSpeed * 1.5f;
-				}
+					//not moving right
+					if (!bIsMovingRight)
+					{
+						TargetForwardSpeed = BackwardSpeed;
+					}
+					// is moving right
+					else
+					{
+						TargetForwardSpeed = ForwardSpeed * 1.5f;
+					}
 
-				ForwardLinearPhysicsAlpha = ForwardAcceleration;
+					ForwardLinearPhysicsAlpha = BackwardAcceleration;
+				}
 			}
-			//moving backwards
+			// not moving forwards or backwards
 			else
 			{
-				//not moving right
-				if (!bIsMovingRight)
-				{
-					TargetForwardSpeed = BackwardSpeed;
-				}
-				// is moving right
-				else
-				{
-					TargetForwardSpeed = ForwardSpeed * 1.5f;
-				}
-
-				ForwardLinearPhysicsAlpha = BackwardAcceleration;
+				TargetForwardSpeed = 0;
+				ForwardLinearPhysicsAlpha = ForwardDeceleration;
+				bIsMovingForward = false;
 			}
-		}
-		// not moving forwards or backwards
-		else
-		{
-			TargetForwardSpeed = 0;
-			ForwardLinearPhysicsAlpha = ForwardDeceleration;
-			bIsMovingForward = false;
-		}
 
-		NewVelocity = FMath::Lerp(CurrentLinearVelocity, TargetLinearVelocity, ForwardLinearPhysicsAlpha);
-		ShipMesh->SetPhysicsLinearVelocity(NewVelocity, false, NAME_None);
+			NewVelocity = FMath::Lerp(CurrentLinearVelocity, TargetLinearVelocity, ForwardLinearPhysicsAlpha);
+			ShipMesh->SetPhysicsLinearVelocity(NewVelocity, false, NAME_None);
+		}
 	}
-
 }
 
 void ASRSpaceShip::MoveRight(float value)
 {
-	CurrentRightSpeed = FMath::Lerp(CurrentRightSpeed, TargetRightSpeed, RightLinearPhysicsAlpha);
-
-	FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
-
-	FVector TargetLinearVelocity = GetActorRightVector() * (value*CurrentRightSpeed);
-
-	if (value != 0)
+	if (!bShipOff)
 	{
-		bIsMovingRight = true;
-		
-		if(!bIsMovingForward)
+
+		CurrentRightSpeed = FMath::Lerp(CurrentRightSpeed, TargetRightSpeed, RightLinearPhysicsAlpha);
+
+		FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
+
+		FVector TargetLinearVelocity = GetActorRightVector() * (value*CurrentRightSpeed);
+
+		if (value != 0)
 		{
-			TargetRightSpeed = RightSpeed;
+			bIsMovingRight = true;
+
+			if (!bIsMovingForward)
+			{
+				TargetRightSpeed = RightSpeed;
+			}
+			else
+			{
+				TargetRightSpeed = RightSpeed * 1.5f;
+			}
+
+			RightLinearPhysicsAlpha = RightAcceleration;
 		}
 		else
 		{
-			TargetRightSpeed = RightSpeed * 1.5f;
+			bIsMovingRight = false;
+			TargetRightSpeed = 0;
+			RightLinearPhysicsAlpha = RightDeceleration;
 		}
 
-		RightLinearPhysicsAlpha = RightAcceleration;
+		NewVelocity = FMath::Lerp(CurrentLinearVelocity, TargetLinearVelocity, RightLinearPhysicsAlpha);
+		ShipMesh->SetPhysicsLinearVelocity(NewVelocity, false, NAME_None);
 	}
-	else
-	{
-		bIsMovingRight = false;
-		TargetRightSpeed = 0;
-		RightLinearPhysicsAlpha = RightDeceleration;
-	}
-
-	NewVelocity = FMath::Lerp(CurrentLinearVelocity, TargetLinearVelocity, RightLinearPhysicsAlpha);
-	ShipMesh->SetPhysicsLinearVelocity(NewVelocity, false, NAME_None);
 }
 
 void ASRSpaceShip::RollRight(float value)
 {
-	float RollVelocityChange = 0.0f;
-	if (value != 0)
+	if (!bShipOff)
 	{
-		RollVelocityChange = RollAcceleration;
-	}
-	else
-	{
-		RollVelocityChange = RollDeceleration;
-	}
-	FVector Torque = FMath::Lerp(ZeroVector,
-		GetActorForwardVector() * (value * RollSpeed),
-		RollVelocityChange);
 
-	ShipMesh->AddTorqueInDegrees(Torque, NAME_None, true);
+		float RollVelocityChange = 0.0f;
+		if (value != 0)
+		{
+			RollVelocityChange = RollAcceleration;
+		}
+		else
+		{
+			RollVelocityChange = RollDeceleration;
+		}
+		FVector Torque = FMath::Lerp(ZeroVector,
+			GetActorForwardVector() * (value * RollSpeed),
+			RollVelocityChange);
 
-	//UE_LOG(LogTemp, Warning, TEXT("Looking Right!"));
+		ShipMesh->AddTorqueInDegrees(Torque, NAME_None, true);
+
+		//UE_LOG(LogTemp, Warning, TEXT("Looking Right!"));
+	}
 }
 
 void ASRSpaceShip::MoveUp(float value)
 {
-
-	CurrentUpSpeed = FMath::Lerp(CurrentUpSpeed, TargetUpSpeed, UpLinearPhysicsAlpha);
-
-	FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
-
-	FVector TargetLinearVelocity = GetActorUpVector() * (value*CurrentUpSpeed);
-
-	// Moving forwards or backwards
-	if (value != 0)
+	if (!bShipOff)
 	{
-		bIsMovingUp = true;
-		//moving forwards
-		if (value > 0)
+
+		CurrentUpSpeed = FMath::Lerp(CurrentUpSpeed, TargetUpSpeed, UpLinearPhysicsAlpha);
+
+		FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
+
+		FVector TargetLinearVelocity = GetActorUpVector() * (value*CurrentUpSpeed);
+
+		// Moving forwards or backwards
+		if (value != 0)
 		{
-			// not moving right
-			if (!bIsMovingRight)
+			bIsMovingUp = true;
+			//moving forwards
+			if (value > 0)
 			{
-				TargetUpSpeed = UpSpeed;
+				// not moving right
+				if (!bIsMovingRight)
+				{
+					TargetUpSpeed = UpSpeed;
+				}
+				// is moving right
+				else
+				{
+					TargetUpSpeed = UpSpeed * 1.5f;
+				}
+
+				UpLinearPhysicsAlpha = UpAcceleration;
 			}
-			// is moving right
+			//moving backwards
 			else
 			{
-				TargetUpSpeed = UpSpeed * 1.5f;
-			}
+				//not moving right
+				if (!bIsMovingRight)
+				{
+					TargetUpSpeed = DownSpeed;
+				}
+				// is moving right
+				else
+				{
+					TargetUpSpeed = UpSpeed * 1.5f;
+				}
 
-			UpLinearPhysicsAlpha = UpAcceleration;
+				UpLinearPhysicsAlpha = DownAcceleration;
+			}
 		}
-		//moving backwards
+		// not moving forwards or backwards
 		else
 		{
-			//not moving right
-			if (!bIsMovingRight)
-			{
-				TargetUpSpeed = DownSpeed;
-			}
-			// is moving right
-			else
-			{
-				TargetUpSpeed = UpSpeed * 1.5f;
-			}
-
-			UpLinearPhysicsAlpha = DownAcceleration;
+			TargetUpSpeed = 0;
+			UpLinearPhysicsAlpha = UpDeceleration;
+			bIsMovingUp = false;
 		}
-	}
-	// not moving forwards or backwards
-	else
-	{
-		TargetUpSpeed = 0;
-		UpLinearPhysicsAlpha = UpDeceleration;
-		bIsMovingUp = false;
-	}
 
-	NewVelocity = FMath::Lerp(CurrentLinearVelocity, TargetLinearVelocity, UpLinearPhysicsAlpha);
-	ShipMesh->SetPhysicsLinearVelocity(NewVelocity, false, NAME_None);
+		NewVelocity = FMath::Lerp(CurrentLinearVelocity, TargetLinearVelocity, UpLinearPhysicsAlpha);
+		ShipMesh->SetPhysicsLinearVelocity(NewVelocity, false, NAME_None);
+	}
 }
 
 void ASRSpaceShip::BoostForwardPressed()
 {
-	UE_LOG(LogTemp, Warning, TEXT("BOOSTING!"));
-	bIsBoosting = true;
-	YawAcceleration = 0.04f;
+	if (!bShipOff)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BOOSTING!"));
+		bIsBoosting = true;
+		YawAcceleration = 0.04f;
+	}
+
 }
 void ASRSpaceShip::BoostForwardReleased()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Not BOOSTING!"));
-	bIsBoosting = false;
-	YawAcceleration = 0.08f;
+	if (!bShipOff)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Not BOOSTING!"));
+		bIsBoosting = false;
+		YawAcceleration = 0.08f;
+	}
+
 }
 #pragma endregion 
 

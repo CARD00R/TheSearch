@@ -16,6 +16,7 @@
 #include "SpaceRaiders.h"
 #include "Components/SRHealthComponent.h"
 #include "Animation/AnimInstance.h"
+#include "Public/Vehicles/SpaceShip/SRSpaceShip.h"
 
 // Sets default values
 ASRCharacter::ASRCharacter()
@@ -601,7 +602,25 @@ void ASRCharacter::InteractWith()
 	{
 		PickupUtility(ProximityUtilityPickup);
 	}
+	if(ShipCloseTo)
+	{
+		EnterShip();
+	}
 	
+}
+void ASRCharacter::EnterShip()
+{
+	if(ShipCloseTo)
+	{
+		APawn* ShipPawn = ShipCloseTo;
+		GetController()->Possess(ShipCloseTo);
+		ShipCloseTo->bShipOff = false;
+		Destroy(this);
+	}
+}
+void ASRCharacter::SetShip(ASRSpaceShip * ShipToSet)
+{
+	ShipCloseTo = ShipToSet;
 }
 void ASRCharacter::PickupUtility(ASRPickup * UtilityToPickup)
 {

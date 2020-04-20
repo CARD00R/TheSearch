@@ -10,6 +10,9 @@ class USkeletalMeshComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class ASRCharacter;
+class USphereComponent;
+class USceneComponent;
+
 UCLASS()
 class SPACERAIDERS_API ASRSpaceShip : public APawn
 {
@@ -33,6 +36,13 @@ protected:
 		// Camera
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* CameraComp;
+		// Interactive Collision
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USphereComponent* InteractCollision;
+		// Spawn Zone
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		USceneComponent* ExitShipZone;
+	
 
 	//Camera Variables
 	UPROPERTY(EditDefaultsOnly, Category = "Camera Variables|Rotation")
@@ -138,13 +148,28 @@ protected:
 	FVector ZeroVector = FVector(0, 0, 0);
 
 	// Inventory
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
-	ASRCharacter* Pilot;
+	UPROPERTY(EditDefaultsOnly, Category = "Pilot")
+	TSubclassOf<class ASRCharacter> PilotClass;
+
+	ASRCharacter* PilotCloseby;
+
+
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	UPROPERTY(EditAnywhere, Category = "Global")
+	bool bShipOff = true;
+	
+	void ExitShip();
+	
+	UFUNCTION()
+	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
+	UFUNCTION()
+	virtual void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };

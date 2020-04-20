@@ -15,6 +15,7 @@ class ASRGun;
 class USRHealthComponent;
 class ASRPickup;
 class UCharacterMovementComponent;
+class ASRSpaceShip;
 
 UENUM(BlueprintType)
 enum class EStanceStatus : uint8
@@ -317,12 +318,20 @@ protected:
 	// Interact
 	void InteractWith();
 
+
 	// Pickups
 	void PickupUtility(ASRPickup* UtilityToPickup);
 
 	// Inventory
 	int HealthUtilityCount;
 	int StaminaUtilityCount;
+
+
+	// Ship
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ship")
+	ASRSpaceShip* ShipCloseTo;
+	void EnterShip();
+
 	
 	// Health
 	UFUNCTION()
@@ -382,10 +391,11 @@ public:
 	FVector HitLocation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death")
 	FVector HitDireciton;
-
 	float HitForce;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death")
 	FName HitBoneName;
+
+	// Ship
+	void SetShip(ASRSpaceShip* ShipToSet);
 
 };

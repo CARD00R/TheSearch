@@ -41,6 +41,11 @@ void ASRPickup::Store()
 	//ASRCharacter* MyCharacter = Cast<ASRCharacter>(GetOwner());
 }
 
+void ASRPickup::DestroySelf()
+{
+	Destroy(this);
+}
+
 // Called every frame
 void ASRPickup::Tick(float DeltaTime)
 {
@@ -69,4 +74,5 @@ EPickupType ASRPickup::GetUtilityPickupType()
 void ASRPickup::ConsumeUtility()
 {
 	// Health and Stamina
+	
 }

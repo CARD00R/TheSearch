@@ -122,6 +122,10 @@ protected:
 	float BulletsInReserve;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	float BulletForce;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Recoil")
+	float HorizontalRecoil;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Recoil")
+	float VerticalRecoil;
 
 	
 	FTimerHandle FireTimer;

@@ -323,8 +323,7 @@ protected:
 	void PickupUtility(ASRPickup* UtilityToPickup);
 
 	// Inventory
-	int HealthUtilityCount;
-	int StaminaUtilityCount;
+	void UseHeal();
 
 
 	// Ship
@@ -394,8 +393,18 @@ public:
 	float HitForce;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death")
 	FName HitBoneName;
+	void GunRecoil(float horizontalRecoil, float verticalRecoil);
 
 	// Ship
 	void SetShip(ASRSpaceShip* ShipToSet);
 
+	//inventory
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inventory")
+	float HealthPackAddition;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory")
+	UAnimMontage* UseHealMontage;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
+	int HealthUtilityCount;
+	int StaminaUtilityCount;
 };
+

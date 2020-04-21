@@ -121,6 +121,9 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void HolsterPrimaryPistol();
 
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void HealCharacter();
+	
 	UFUNCTION(BlueprintCallable, Category = "Animation Properties")
 	void UpdateAnimationProperties(float DeltaTime);
 

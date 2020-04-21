@@ -153,14 +153,11 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	//Axis Events
-	
 	PlayerInputComponent->BindAxis("CharacterMoveForward", this, &ASRCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("CharacterMoveRight", this, &ASRCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("CharacterLookUp", this, &ASRCharacter::LookUp);
 	PlayerInputComponent->BindAxis("CharacterTurn", this, &ASRCharacter::Turn);
-
 	//Action Events
-
 	PlayerInputComponent->BindAction("CharacterFreeLook", IE_Pressed, this, &ASRCharacter::FreeLookOn);
 	PlayerInputComponent->BindAction("CharacterFreeLook", IE_Released, this, &ASRCharacter::FreeLookOff);
 	/////// Movement Events
@@ -179,6 +176,7 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction("CharacterDropWeapon", IE_Pressed, this, &ASRCharacter::DropWeapon);
 	PlayerInputComponent->BindAction("CharacterInteract", IE_Pressed, this, &ASRCharacter::InteractWith);
 	PlayerInputComponent->BindAction("CharacterSecondaryWeapon", IE_Pressed, this, &ASRCharacter::EquipSecondaryWeapon);
+	PlayerInputComponent->BindAction("CharacterHeal", IE_Pressed, this, &ASRCharacter::UseHeal);
 
 }
 
@@ -618,6 +616,11 @@ void ASRCharacter::EnterShip()
 		Destroy(this);
 	}
 }
+void ASRCharacter::GunRecoil(float horizontalRecoil, float verticalRecoil)
+{
+	AddControllerPitchInput(-(verticalRecoil));
+	AddControllerYawInput(-(horizontalRecoil));
+}
 void ASRCharacter::SetShip(ASRSpaceShip * ShipToSet)
 {
 	ShipCloseTo = ShipToSet;
@@ -627,7 +630,7 @@ void ASRCharacter::PickupUtility(ASRPickup * UtilityToPickup)
 	ASRPickup* TempUtilityPickup = UtilityToPickup;
 	TempUtilityPickup->SetOwner(this);
 	TempUtilityPickup->Store();
-	/*
+	
 	if (TempUtilityPickup->GetUtilityPickupType() == EPickupType::Ept_Ammo)
 	{
 		
@@ -643,7 +646,20 @@ void ASRCharacter::PickupUtility(ASRPickup * UtilityToPickup)
 	else if (TempUtilityPickup->GetUtilityPickupType() == EPickupType::Ept_Stamina)
 	{
 		StaminaUtilityCount++;
-	}*/
+	}
+	PlayAnimMontage(TempUtilityPickup->PickUpMontage, 2.0f, NAME_None);
+	
+	TempUtilityPickup->DestroySelf();
+}
+void ASRCharacter::UseHeal()
+{
+	if(HealthUtilityCount > 0)
+	{
+		if(UseHealMontage)
+		{
+			PlayAnimMontage(UseHealMontage, 2.0f, NAME_None);
+		}
+	}
 }
 #pragma endregion
 
@@ -1139,6 +1155,7 @@ void ASRCharacter::OnHealthChanged(USRHealthComponent* HealthComp, float Health,
 {
 	if(Health <= 0.0f)
 	{
+		DropWeapon();
 			// Movement Comp
 		GetMovementComponent()->StopMovementImmediately();
 		GetMovementComponent()->SetComponentTickEnabled(false);
@@ -1157,10 +1174,18 @@ void ASRCharacter::OnHealthChanged(USRHealthComponent* HealthComp, float Health,
 		SetStanceStatus(EStanceStatus::Ess_Dead);
 		GlobalKeysInputDisable();
 		SpringArmComp->bUsePawnControlRotation = true;
-
+		
 		//GetMesh()->AddImpulseAtLocation(HitDireciton * HitForce, HitLocation);
 		GetMesh()->AddImpulseAtLocation(HitDireciton * HitForce, HitLocation, HitBoneName);
-		
+
+		/*if(AIGun)
+		{
+			EquippedWeapon->DroppedCollisionPreset();
+			EquippedWeapon->SetOwner(nullptr);
+			EquippedWeapon->SetPickedUpState(false);
+			EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		}
+		*/	
 	}
 }
 
@@ -1180,8 +1205,7 @@ float ASRCharacter::PlayAnimMontage(UAnimMontage * AnimMontage, float InPlayRate
 	if(AnimMontage && AnimInstance)
 	{
 		float const Duration = AnimInstance->Montage_Play(AnimMontage, InPlayRate);
-
-		
+			
 		// Start at a given Section if given
 		if (StartSectionName != NAME_None)
 		{
@@ -1298,10 +1322,6 @@ void ASRCharacter::PullTrigger()
 		if (!GetGunHolstered())
 		{
 			EquippedWeapon->StartFire();
-			if(GetGunStatus()==EGunStatus::Egs_Reloading)
-			{
-				SetGunStatus(EGunStatus::Egs_ADSing);
-			}
 		}
 	}
 }
@@ -1408,7 +1428,7 @@ void ASRCharacter::ReloadRequest()
 
 void ASRCharacter::Reload()
 {
-	EquippedWeapon->ReloadStart();
+		EquippedWeapon->ReloadStart();
 }
 
 void ASRCharacter::DropWeapon()

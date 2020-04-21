@@ -273,11 +273,13 @@ void ASRGun::PlayFireEffects(FVector TracerEnd, FHitResult HitRes)
 	if(FireSFX)
 	{	
 		UGameplayStatics::PlaySoundAtLocation(this, FireSFX, MuzzleLocation, FRotator(0, 0, 0));
-	}	
+	}
+	MyCharacter->GunRecoil(HorizontalRecoil,VerticalRecoil);
 }
 
 void ASRGun::Reload()
 {
+	ASRCharacter* MyCharacter = Cast<ASRCharacter>(GetOwner());
 	if (BulletsInReserve > 0)
 	{
 		float Test1 = CurrentBulletsInMag + BulletsInReserve;
@@ -302,17 +304,25 @@ void ASRGun::Reload()
 
 void ASRGun::ReloadStart()
 {
-	if(BulletsInReserve > 0)
-	{
-		ASRCharacter* MyCharacter = Cast<ASRCharacter>(GetOwner());
+	ASRCharacter* MyCharacter = Cast<ASRCharacter>(GetOwner());
 
+	if (BulletsInReserve > 0)
+	{
 		MyCharacter->SetGunStatus(EGunStatus::Egs_Reloading);
 
 		if (MyCharacter && ReloadMontage)
 		{
-			MyCharacter->PlayAnimMontage(ReloadMontage, 1.0f, NAME_None);
+			if(MyCharacter->GetCurrentMontage())
+			{
+				
+			}
+			else
+			{
+				MyCharacter->PlayAnimMontage(ReloadMontage, 1.0f, NAME_None);
+			}
 		}
 	}
+
 }
 
 
@@ -328,6 +338,7 @@ void ASRGun::ReloadEnd()
 	{
 		MyCharacter->SetGunStatus(EGunStatus::Egs_Nis);
 	}
+	
 }
 
 void ASRGun::DroppedCollisionPreset()

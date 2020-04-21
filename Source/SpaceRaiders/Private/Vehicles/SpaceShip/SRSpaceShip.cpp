@@ -78,14 +78,18 @@ void ASRSpaceShip::Tick(float DeltaTime)
 	{
 		if(PilotClass)
 		{
-			LookUp(0);
-			LookRight(0);
-			MoveForward(0);
-			MoveRight(0);
-			RollRight(0);
-			MoveUp(0);
+			//LookUp(0);
+			//LookRight(0);
+			//MoveForward(0);
+			//MoveRight(0);
+			//RollRight(0);
+			MoveUp(-1.0f);
 			BoostForwardReleased();
-			ShipMesh->SetPhysicsLinearVelocity(FVector(0, 0, 0), false, NAME_None);
+			
+			FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
+			FVector TargetLinearVelocity = FVector(0, 0, 0);
+			NewVelocity = FMath::Lerp(CurrentLinearVelocity, TargetLinearVelocity, 0.02);
+			ShipMesh->SetPhysicsLinearVelocity(NewVelocity, false, NAME_None);
 		}
 	}
 }

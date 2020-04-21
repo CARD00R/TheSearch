@@ -9,6 +9,7 @@
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "Weapons/Guns/SRGun.h"
+#include "Public/Components/SRHealthComponent.h"
 
 void USRCharacterAnimInstance::NativeInitializeAnimation()
 {
@@ -178,4 +179,17 @@ void USRCharacterAnimInstance::HolsterSecondaryPistol()
 void USRCharacterAnimInstance::HolsterPrimaryPistol()
 {
 	Character->AnimNotifyHolsterPrimaryGun();
+}
+
+void USRCharacterAnimInstance::HealCharacter()
+{
+	if(Character)
+	{
+		if(Character->OwningHealthComp)
+		{
+			Character->OwningHealthComp->SetHealth(Character->HealthPackAddition);
+			Character->HealthUtilityCount--;
+		}
+
+	}
 }

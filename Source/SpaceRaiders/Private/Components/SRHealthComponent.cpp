@@ -51,6 +51,16 @@ void USRHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage,
 	OnHealthChanged.Broadcast(this, CurrentHealth, Damage, DamageType, InstigatedBy, DamageCauser);
 }
 
+void USRHealthComponent::SetHealth(float HealthToAdd)
+{
+	CurrentHealth = CurrentHealth + HealthToAdd;
+}
+
+float USRHealthComponent::GetHealth()
+{
+	return CurrentHealth;
+}
+
 bool USRHealthComponent::IsFriendly(AActor* ActorA, AActor* ActorB)
 {
 	if(ActorA == nullptr || ActorB == nullptr)

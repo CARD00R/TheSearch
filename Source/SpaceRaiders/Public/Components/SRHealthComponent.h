@@ -37,6 +37,9 @@ protected:
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health Component")
 		float CurrentHealth;
+
+	void SetHealth(float HealthToAdd);
+	float GetHealth();
 	
 	UPROPERTY(BlueprintAssignable, Category= "Events")
 	FOnHealthChangedSignature OnHealthChanged;

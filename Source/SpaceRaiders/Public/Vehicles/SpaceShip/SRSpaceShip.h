@@ -68,6 +68,9 @@ protected:
 	void FreeLookOff();
 
 	//Variables
+			// IndoorSpeed Set
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite,Category = "Pilot")
+	float IndoorSpeedChange = 0.8;
 			// Physics
 	UPROPERTY(VisibleInstanceOnly, Category = "Movement Variables|Physics")
 	FVector NewVelocity = FVector(0, 0, 0);
@@ -152,6 +155,8 @@ protected:
 	TSubclassOf<class ASRCharacter> PilotClass;
 
 	ASRCharacter* PilotCloseby;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite,Category = "Pilot")
+	bool bCanExitShip = false;
 
 
 	

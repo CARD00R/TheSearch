@@ -119,7 +119,7 @@ void ASRSpaceShip::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 void ASRSpaceShip::ExitShip()
 {
 	{
-		if (PilotClass)
+		if (PilotClass && bCanExitShip)
 		{
 			UWorld* world = GetWorld();
 			FActorSpawnParameters spawnParams;
@@ -201,11 +201,11 @@ void ASRSpaceShip::MoveForward(float value)
 	{
 		if (bIsBoosting)
 		{
-			CurrentForwardSpeed = FMath::Lerp(CurrentForwardSpeed, TargetForwardSpeed*BoostMultiplier, ForwardLinearPhysicsAlpha*BoostMultiplier);
+			CurrentForwardSpeed = FMath::Lerp(CurrentForwardSpeed, TargetForwardSpeed*BoostMultiplier*IndoorSpeedChange, ForwardLinearPhysicsAlpha*BoostMultiplier);
 
 			FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
 
-			FVector TargetLinearVelocity = GetActorForwardVector() * FMath::Clamp(value*CurrentForwardSpeed, -BackwardSpeed, ForwardSpeed*BoostMultiplier);
+			FVector TargetLinearVelocity = GetActorForwardVector() * FMath::Clamp(value*CurrentForwardSpeed, -BackwardSpeed, ForwardSpeed*BoostMultiplier*IndoorSpeedChange);
 
 			// Moving forwards or backwards
 			if (value != 0)
@@ -217,15 +217,15 @@ void ASRSpaceShip::MoveForward(float value)
 					// not moving right
 					if (!bIsMovingRight)
 					{
-						TargetForwardSpeed = ForwardSpeed * BoostMultiplier;
+						TargetForwardSpeed = ForwardSpeed * BoostMultiplier*IndoorSpeedChange;
 					}
 					// is moving right
 					else
 					{
-						TargetForwardSpeed = (ForwardSpeed* BoostMultiplier) * 1.5f;
+						TargetForwardSpeed = (ForwardSpeed* BoostMultiplier*IndoorSpeedChange) * 1.5f;
 					}
 
-					ForwardLinearPhysicsAlpha = ForwardAcceleration * BoostMultiplier;
+					ForwardLinearPhysicsAlpha = ForwardAcceleration * BoostMultiplier*IndoorSpeedChange;
 				}
 				//moving backwards
 				else
@@ -234,15 +234,15 @@ void ASRSpaceShip::MoveForward(float value)
 					//not moving right
 					if (!bIsMovingRight)
 					{
-						TargetForwardSpeed = BackwardSpeed;
+						TargetForwardSpeed = BackwardSpeed * IndoorSpeedChange;
 					}
 					// is moving right
 					else
 					{
-						TargetForwardSpeed = ForwardSpeed * 1.5f;
+						TargetForwardSpeed = ForwardSpeed * 1.5f*IndoorSpeedChange;
 					}
 
-					ForwardLinearPhysicsAlpha = BackwardAcceleration;
+					ForwardLinearPhysicsAlpha = BackwardAcceleration * IndoorSpeedChange;
 				}
 			}
 			// not moving forwards or backwards
@@ -258,11 +258,11 @@ void ASRSpaceShip::MoveForward(float value)
 		}
 		else
 		{
-			CurrentForwardSpeed = FMath::Lerp(CurrentForwardSpeed, TargetForwardSpeed, ForwardLinearPhysicsAlpha);
+			CurrentForwardSpeed = FMath::Lerp(CurrentForwardSpeed, TargetForwardSpeed*IndoorSpeedChange, ForwardLinearPhysicsAlpha);
 
 			FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
 
-			FVector TargetLinearVelocity = GetActorForwardVector() * FMath::Clamp(value*CurrentForwardSpeed, -BackwardSpeed, ForwardSpeed);
+			FVector TargetLinearVelocity = GetActorForwardVector() * FMath::Clamp(value*CurrentForwardSpeed, -BackwardSpeed, ForwardSpeed*IndoorSpeedChange);
 
 			// Moving forwards or backwards
 			if (value != 0)
@@ -274,15 +274,15 @@ void ASRSpaceShip::MoveForward(float value)
 					// not moving right
 					if (!bIsMovingRight)
 					{
-						TargetForwardSpeed = ForwardSpeed;
+						TargetForwardSpeed = ForwardSpeed * IndoorSpeedChange;
 					}
 					// is moving right
 					else
 					{
-						TargetForwardSpeed = ForwardSpeed * 1.5f;
+						TargetForwardSpeed = ForwardSpeed * 1.5f*IndoorSpeedChange;
 					}
 
-					ForwardLinearPhysicsAlpha = ForwardAcceleration;
+					ForwardLinearPhysicsAlpha = ForwardAcceleration * IndoorSpeedChange;
 				}
 				//moving backwards
 				else
@@ -290,15 +290,15 @@ void ASRSpaceShip::MoveForward(float value)
 					//not moving right
 					if (!bIsMovingRight)
 					{
-						TargetForwardSpeed = BackwardSpeed;
+						TargetForwardSpeed = BackwardSpeed * IndoorSpeedChange;
 					}
 					// is moving right
 					else
 					{
-						TargetForwardSpeed = ForwardSpeed * 1.5f;
+						TargetForwardSpeed = ForwardSpeed * 1.5f *IndoorSpeedChange;
 					}
 
-					ForwardLinearPhysicsAlpha = BackwardAcceleration;
+					ForwardLinearPhysicsAlpha = BackwardAcceleration * IndoorSpeedChange;
 				}
 			}
 			// not moving forwards or backwards
@@ -320,7 +320,7 @@ void ASRSpaceShip::MoveRight(float value)
 	if (!bShipOff)
 	{
 
-		CurrentRightSpeed = FMath::Lerp(CurrentRightSpeed, TargetRightSpeed, RightLinearPhysicsAlpha);
+		CurrentRightSpeed = FMath::Lerp(CurrentRightSpeed, TargetRightSpeed*IndoorSpeedChange, RightLinearPhysicsAlpha);
 
 		FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
 
@@ -332,14 +332,14 @@ void ASRSpaceShip::MoveRight(float value)
 
 			if (!bIsMovingForward)
 			{
-				TargetRightSpeed = RightSpeed;
+				TargetRightSpeed = RightSpeed * IndoorSpeedChange;
 			}
 			else
 			{
-				TargetRightSpeed = RightSpeed * 1.5f;
+				TargetRightSpeed = RightSpeed * 1.5f*IndoorSpeedChange;
 			}
 
-			RightLinearPhysicsAlpha = RightAcceleration;
+			RightLinearPhysicsAlpha = RightAcceleration * IndoorSpeedChange;
 		}
 		else
 		{
@@ -382,7 +382,7 @@ void ASRSpaceShip::MoveUp(float value)
 	if (!bShipOff)
 	{
 
-		CurrentUpSpeed = FMath::Lerp(CurrentUpSpeed, TargetUpSpeed, UpLinearPhysicsAlpha);
+		CurrentUpSpeed = FMath::Lerp(CurrentUpSpeed, TargetUpSpeed*IndoorSpeedChange, UpLinearPhysicsAlpha*IndoorSpeedChange);
 
 		FVector CurrentLinearVelocity = ShipMesh->GetPhysicsLinearVelocity(NAME_None);
 
@@ -398,15 +398,15 @@ void ASRSpaceShip::MoveUp(float value)
 				// not moving right
 				if (!bIsMovingRight)
 				{
-					TargetUpSpeed = UpSpeed;
+					TargetUpSpeed = UpSpeed * IndoorSpeedChange;
 				}
 				// is moving right
 				else
 				{
-					TargetUpSpeed = UpSpeed * 1.5f;
+					TargetUpSpeed = UpSpeed * 1.5f *IndoorSpeedChange;
 				}
 
-				UpLinearPhysicsAlpha = UpAcceleration;
+				UpLinearPhysicsAlpha = UpAcceleration * IndoorSpeedChange;
 			}
 			//moving backwards
 			else
@@ -414,15 +414,15 @@ void ASRSpaceShip::MoveUp(float value)
 				//not moving right
 				if (!bIsMovingRight)
 				{
-					TargetUpSpeed = DownSpeed;
+					TargetUpSpeed = DownSpeed * IndoorSpeedChange;
 				}
 				// is moving right
 				else
 				{
-					TargetUpSpeed = UpSpeed * 1.5f;
+					TargetUpSpeed = UpSpeed * 1.5f *IndoorSpeedChange;
 				}
 
-				UpLinearPhysicsAlpha = DownAcceleration;
+				UpLinearPhysicsAlpha = DownAcceleration * IndoorSpeedChange;
 			}
 		}
 		// not moving forwards or backwards

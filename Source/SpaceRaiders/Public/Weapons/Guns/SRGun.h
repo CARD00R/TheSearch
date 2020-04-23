@@ -15,6 +15,7 @@ class ASRCharacter;
 class USphereComponent;
 class USoundBase;
 class UTexture2D;
+class UPointLightComponent;
 
 UENUM(BlueprintType)
 enum class EGunType : uint8
@@ -52,6 +53,9 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName MuzzleSocketName;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UPointLightComponent* PickUpLight;
 
 	// Effects
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")

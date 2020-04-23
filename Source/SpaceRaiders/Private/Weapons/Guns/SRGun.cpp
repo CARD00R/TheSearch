@@ -11,7 +11,7 @@
 #include "TimerManager.h"
 #include "SRCharacter.h"
 #include "Components/SphereComponent.h"
-
+#include "Components/PointLightComponent.h"
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -32,6 +32,9 @@ ASRGun::ASRGun()
 	PickUpCollision->SetupAttachment(RootComponent);
 	PickUpCollision->SetSphereRadius(180.0f);
 	
+	// light
+	PickUpLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("PickUpLight"));
+	PickUpCollision->SetupAttachment(RootComponent);
 	
 	MuzzleSocketName = "MuzzleSocket";
 	TracerTargetName = "Target";

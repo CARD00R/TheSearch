@@ -54,6 +54,8 @@ ASRCharacter::ASRCharacter()
 	GetCharacterMovement()->BrakingDecelerationWalking = 1350.0f;
 	GetCharacterMovement()->bCanWalkOffLedgesWhenCrouching = true;
 	GetCharacterMovement()->JumpZVelocity = 560.0f;
+	GetCharacterMovement()->MaxStepHeight = 70.0f;
+	GetCharacterMovement()->SetWalkableFloorAngle(70.0f);
 	
 
 	// Input Properties

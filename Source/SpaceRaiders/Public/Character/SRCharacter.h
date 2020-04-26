@@ -16,6 +16,8 @@ class USRHealthComponent;
 class ASRPickup;
 class UCharacterMovementComponent;
 class ASRSpaceShip;
+class UMaterialInterface;
+class UPawnNoiseEmitterComponent;
 
 UENUM(BlueprintType)
 enum class EStanceStatus : uint8
@@ -103,6 +105,9 @@ public:
 	USRHealthComponent* OwningHealthComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCharacterMovementComponent* CharMovementComp;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPawnNoiseEmitterComponent* NoiseEmitterComp;
 	
 	APlayerController* PlayerController;
 
@@ -212,7 +217,7 @@ protected:
 	float SprintSpeed = DefaultSprintSpeed;
 	float DefaultSprintSpeed = 900.0f;
 	float CrouchSpeed = 300.0f;
-	float WalkSpeed = 400;
+	float WalkSpeed = 450;
 	float RollSpeed = 750;
 	
 
@@ -301,8 +306,9 @@ protected:
 
 	// AI
 		// Variables
-	UPROPERTY(EditAnywhere, Category = "AI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
 	TSubclassOf<class ASRGun> AIGun;
+	void AIDropWeapon();
 
 	
 		//Methods
@@ -362,7 +368,9 @@ public:
 	void AimPressed();
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void AimReleased();
-
+	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
+	void NoiseCreator();
+	
 	// Anim Notify
 	void AnimNotifyUnHolster();
 	void AnimNotifyPickUpGun();
@@ -385,6 +393,10 @@ public:
 	void AIUnADS();
 	void ReloadRequest();
 
+	// Ai Change material eyes
+	UFUNCTION(BlueprintCallable, Category = "Appearance")
+	void SetAIEyeMaterial(UMaterialInterface* MaterialToChangeTo, int32 MatIndex );
+
 	// Weapon Affecting Character
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death")
 	FVector HitLocation;
@@ -396,6 +408,7 @@ public:
 	void GunRecoil(float horizontalRecoil, float verticalRecoil);
 
 	// Ship
+	UFUNCTION(BlueprintCallable, Category = "Ship")
 	void SetShip(ASRSpaceShip* ShipToSet);
 
 	//inventory

@@ -11,7 +11,7 @@
 #include "TimerManager.h"
 #include "SRCharacter.h"
 #include "Components/SphereComponent.h"
-#include "Components/PointLightComponent.h"
+
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -30,11 +30,11 @@ ASRGun::ASRGun()
 	// Pick Up Coll
 	PickUpCollision = CreateDefaultSubobject<USphereComponent>(TEXT("PickUpCollision"));
 	PickUpCollision->SetupAttachment(RootComponent);
-	PickUpCollision->SetSphereRadius(180.0f);
-	
-	// light
-	PickUpLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("PickUpLight"));
-	PickUpCollision->SetupAttachment(RootComponent);
+	PickUpCollision->SetSphereRadius(140.0f);
+	// Stencil Coll
+	StencilCollision = CreateDefaultSubobject<USphereComponent>(TEXT("StencilCollision"));
+	StencilCollision->SetupAttachment(RootComponent);
+	StencilCollision->SetSphereRadius(550.0f);
 	
 	MuzzleSocketName = "MuzzleSocket";
 	TracerTargetName = "Target";
@@ -52,6 +52,8 @@ void ASRGun::BeginPlay()
 	PickUpCollision->OnComponentBeginOverlap.AddDynamic(this, &ASRGun::OnOverlapBegin);
 	PickUpCollision->OnComponentEndOverlap.AddDynamic(this, &ASRGun::OnOverlapEnd);
 
+	//StencilCollision->OnComponentBeginOverlap.AddDynamic(this, &ASRGun::OnOverlapBegin);
+	//StencilCollision->OnComponentEndOverlap.AddDynamic(this, &ASRGun::OnOverlapEnd);
 
 	if(IsPickedUp)
 	{
@@ -113,21 +115,20 @@ void ASRGun::Fire()
 				if (HitActor)
 				{
 					ASRCharacter* MyTarget = Cast<ASRCharacter>(HitActor);
-					if(MyTarget)
+					if (MyTarget)
 					{
 						MyTarget->HitLocation = Hit.Location;
 						MyTarget->HitDireciton = ShotDirection;
 						MyTarget->HitForce = BulletForce;
 						MyTarget->HitBoneName = Hit.BoneName;
-						
+
 					}
-				
+
 					UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), MyOwner, DamageType);
-					
+
 				}
 
 				// Obtains surface type from hit object
-
 
 				switch (ObjectSurfaceType)
 				{
@@ -147,6 +148,7 @@ void ASRGun::Fire()
 				case SURFACE_METAL:
 					SelectedImpactEffect = MetalImpactEffect;
 					break;
+
 				}
 				//UE_LOG(LogTemp, Error, TEXT("Name:", *SelectedImpactEffect->GetName()));
 				TracerEndPoint = Hit.ImpactPoint;
@@ -160,13 +162,17 @@ void ASRGun::Fire()
 					UE_LOG(LogTemp, Error, TEXT("Metal"));
 					SelectedImpactEffect = MetalImpactEffect;
 				}
+				if (HitActor  && ObjectSurfaceType)
+				{
+
+				}
+				
 			}
 
 			if (DebugWeaponDrawing > 0)
 			{
 				//DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, 1.4f, 1.5);
 			}
-
 			PlayFireEffects(TracerEndPoint, Hit);
 			LastFiredTime = GetWorld()->TimeSeconds;
 
@@ -180,8 +186,6 @@ void ASRGun::Fire()
 				UE_LOG(LogTemp, Error, TEXT("*click* NEED TO RELOAD"));
 				//Reload
 			}
-
-
 		}
 	}
 	else
@@ -350,11 +354,19 @@ void ASRGun::DroppedCollisionPreset()
 	MeshComp->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	MeshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	MeshComp->SetSimulatePhysics(true);
+	MeshComp->SetRenderCustomDepth(true);
+	MeshComp->SetCustomDepthStencilValue(2);
 	
 	PickUpCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	PickUpCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
 	PickUpCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	PickUpCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+
+	StencilCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	StencilCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	StencilCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	StencilCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	
 	MeshComp->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 
 }
@@ -427,8 +439,13 @@ void ASRGun::PickedupCollisionPreset()
 	MeshComp->SetSimulatePhysics(false);
 	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MeshComp->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	MeshComp->SetRenderCustomDepth(false);
+	MeshComp->SetCustomDepthStencilValue(0);
 	PickUpCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PickUpCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	StencilCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	StencilCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	
 }
 
 void ASRGun::SetPickedUpState(bool NewIsPickedUp)

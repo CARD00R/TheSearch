@@ -17,6 +17,7 @@
 #include "Components/SRHealthComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Public/Vehicles/SpaceShip/SRSpaceShip.h"
+#include "Components/PawnNoiseEmitterComponent.h"
 
 // Sets default values
 ASRCharacter::ASRCharacter()
@@ -56,7 +57,9 @@ ASRCharacter::ASRCharacter()
 	GetCharacterMovement()->JumpZVelocity = 560.0f;
 	GetCharacterMovement()->MaxStepHeight = 70.0f;
 	GetCharacterMovement()->SetWalkableFloorAngle(70.0f);
-	
+
+	//Noise Emitter Comp
+	NoiseEmitterComp = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("NoiseEmitterComp"));
 
 	// Input Properties
 	bIsMovingForward = false;
@@ -337,7 +340,7 @@ void ASRCharacter::MoveForward(float value)
 						//...and player is ADSing...
 						if (GunStatus == EGunStatus::Egs_ADSing)
 						{
-							
+							SetCharacterMovementSpeed(WalkSpeed);
 						}
 						else
 						{
@@ -1157,7 +1160,15 @@ void ASRCharacter::OnHealthChanged(USRHealthComponent* HealthComp, float Health,
 {
 	if(Health <= 0.0f)
 	{
-		DropWeapon();
+
+		if(AIGun)
+		{
+			AIDropWeapon();
+		}
+		else
+		{
+			DropWeapon();
+		}
 			// Movement Comp
 		GetMovementComponent()->StopMovementImmediately();
 		GetMovementComponent()->SetComponentTickEnabled(false);
@@ -1324,6 +1335,8 @@ void ASRCharacter::PullTrigger()
 		if (!GetGunHolstered())
 		{
 			EquippedWeapon->StartFire();
+			//NoiseEmitterComp->MakeNoise(this, 1, GetActorLocation());
+			NoiseCreator();
 		}
 	}
 }
@@ -1426,6 +1439,11 @@ void ASRCharacter::ReloadRequest()
 			Reload();
 		}
 	}
+}
+
+void ASRCharacter::SetAIEyeMaterial(UMaterialInterface * MaterialToChangeTo, int32 MatIndex)
+{
+	GetMesh()->SetMaterial(MatIndex, MaterialToChangeTo);
 }
 
 void ASRCharacter::Reload()
@@ -1677,6 +1695,67 @@ EGunStatus ASRCharacter::GetGunStatus()
 #pragma endregion 
 
 #pragma region AI
+void ASRCharacter::AIDropWeapon()
+{
+	if (EquippedWeapon)
+	{
+		if (bAimPressed)
+		{
+			AimReleased();
+		}
+		if (EquippedWeapon == PrimaryWeapon)
+		{
+			EquippedWeapon->BulletSpread = 0.0f;
+			EquippedWeapon->CurrentBulletsInMag = FMath::FRandRange(0, EquippedWeapon->MagSize);
+			EquippedWeapon->BulletsInReserve = FMath::FRandRange(0, 16.0f);
+
+			EquippedWeapon->DroppedCollisionPreset();
+			EquippedWeapon->SetOwner(nullptr);
+			EquippedWeapon->SetPickedUpState(false);
+			EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			//EquippedWeapon = nullptr;
+			PrimaryWeapon = nullptr;
+			//UE_LOG(LogTemp, Error, TEXT("You have PW equipped and wish to drop it"));
+
+			if (SecondaryWeapon)
+			{
+				EquippedWeapon = SecondaryWeapon;
+				EquippedWeapon->PlayHolsterMontage();
+				//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+			}
+			else
+			{
+				bGunHolstered = true;
+			}
+		}
+		else if (EquippedWeapon == SecondaryWeapon)
+		{
+
+			EquippedWeapon->DroppedCollisionPreset();
+			EquippedWeapon->SetOwner(nullptr);
+			EquippedWeapon->SetPickedUpState(false);
+			EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			//EquippedWeapon = nullptr;
+			SecondaryWeapon = nullptr;
+			//UE_LOG(LogTemp, Error, TEXT("You have SW equipped and wish to drop it"));
+
+			if (PrimaryWeapon)
+			{
+				EquippedWeapon = PrimaryWeapon;
+				EquippedWeapon->PlayHolsterMontage();
+				//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+			}
+			else
+			{
+				bGunHolstered = true;
+			}
+		}
+		else
+		{
+			bGunHolstered = true;
+		}
+	}
+}
 void ASRCharacter::AISpawnAndEquipWeapon()
 {
 	if(AIGun)

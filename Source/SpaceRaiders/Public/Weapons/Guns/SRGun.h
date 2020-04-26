@@ -15,7 +15,7 @@ class ASRCharacter;
 class USphereComponent;
 class USoundBase;
 class UTexture2D;
-class UPointLightComponent;
+
 
 UENUM(BlueprintType)
 enum class EGunType : uint8
@@ -48,14 +48,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USphereComponent* PickUpCollision;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USphereComponent* StencilCollision;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Weapon")
 	TSubclassOf<UDamageType> DamageType;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName MuzzleSocketName;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	UPointLightComponent* PickUpLight;
 
 	// Effects
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
@@ -114,18 +114,8 @@ protected:
 	void Fire();
 	float LastFiredTime;
 	float TimeBetweenShots;
-	//Bullet Spread in Degrees
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (ClampMin=0.0))
-	float BulletSpread;
-	//Reload
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	float MagSize;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	float CurrentBulletsInMag;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	float BulletsInReserve;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	float BulletForce;
+
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Recoil")
 	float HorizontalRecoil;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Recoil")
@@ -177,6 +167,19 @@ public:
 	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 	UFUNCTION()
 	virtual void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-	
+
+	//variables
+		//Bullet Spread in Degrees
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (ClampMin = 0.0))
+		float BulletSpread;
+	//Reload
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+		float MagSize;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+		float CurrentBulletsInMag;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+		float BulletsInReserve;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+		float BulletForce;
 
 };

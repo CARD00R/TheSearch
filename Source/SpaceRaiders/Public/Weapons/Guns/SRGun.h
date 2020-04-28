@@ -181,5 +181,13 @@ public:
 		float BulletsInReserve;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 		float BulletForce;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+		float RandomBulletsInMagMAX;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+		float RandomBulletsInMagMIN;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+		float RandomBulletsInReserveMAX;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+		float RandomBulletsInReserveMIN;
 
 };

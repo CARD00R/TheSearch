@@ -306,8 +306,7 @@ protected:
 
 	// AI
 		// Variables
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
-	TSubclassOf<class ASRGun> AIGun;
+
 	void AIDropWeapon();
 
 	
@@ -393,10 +392,12 @@ public:
 	void AIUnADS();
 	void ReloadRequest();
 
-	// Ai Change material eyes
+	// Ai 
 	UFUNCTION(BlueprintCallable, Category = "Appearance")
 	void SetAIEyeMaterial(UMaterialInterface* MaterialToChangeTo, int32 MatIndex );
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
+		TSubclassOf<class ASRGun> AIGun;
+	
 	// Weapon Affecting Character
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death")
 	FVector HitLocation;
@@ -419,5 +420,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
 	int HealthUtilityCount;
 	int StaminaUtilityCount;
+
+	//UI
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Player")
+	void HitMarkerVisibility(bool shouldBeVisible, bool isHeadShot);
 };
 

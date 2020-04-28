@@ -12,6 +12,7 @@ class UCameraComponent;
 class ASRCharacter;
 class USphereComponent;
 class USceneComponent;
+class UAudioComponent;
 
 UCLASS()
 class SPACERAIDERS_API ASRSpaceShip : public APawn
@@ -42,7 +43,9 @@ protected:
 		// Spawn Zone
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		USceneComponent* ExitShipZone;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UAudioComponent* DirectionalMovementAudioComp;
 
 	//Camera Variables
 	UPROPERTY(EditDefaultsOnly, Category = "Camera Variables|Rotation")
@@ -157,6 +160,20 @@ protected:
 	ASRCharacter* PilotCloseby;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite,Category = "Pilot")
 	bool bCanExitShip = false;
+
+	// Sound
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SFX")
+	USoundBase* ForwardSFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SFX")
+	USoundBase* LeftSFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SFX")
+	USoundBase* RightSFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SFX")
+	USoundBase* DownSFX;
 
 
 	

@@ -103,14 +103,54 @@ void ASRGun::Fire()
 				AActor* HitActor = Hit.GetActor();
 				EPhysicalSurface ObjectSurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
 
+				ASRCharacter* MyPlayer = Cast<ASRCharacter>(MyOwner);
+
 				float ActualDamage = BaseDamage;
 				if (ObjectSurfaceType == SURFACE_CHARHEAD)
 				{
 					ActualDamage *= 3.0f;
+					if (MyPlayer->AIGun == nullptr)
+					{
+						//UE_LOG(LogTemp, Error, TEXT("Player"));
+						MyPlayer->HitMarkerVisibility(true,true);
+					}
+					else
+					{
+						//UE_LOG(LogTemp, Error, TEXT("AI bot"));
+					}
+
 				}
 				else if (ObjectSurfaceType == SURFACE_CHARCHEST)
 				{
 					ActualDamage *= 1.3f;
+					if (MyPlayer->AIGun == nullptr)
+					{
+						//UE_LOG(LogTemp, Error, TEXT("Player"));
+						MyPlayer->HitMarkerVisibility(true,false);
+					}
+					else
+					{
+						//UE_LOG(LogTemp, Error, TEXT("AI bot"));
+					}
+
+				}
+				else if (ObjectSurfaceType == SURFACE_CHARDEFAULT)
+				{
+					if (MyPlayer->AIGun == nullptr)
+					{
+						//UE_LOG(LogTemp, Error, TEXT("Player"));
+						MyPlayer->HitMarkerVisibility(true,false);
+					}
+					else
+					{
+						//UE_LOG(LogTemp, Error, TEXT("AI bot"));
+					}
+
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("AOE AI BOX"));
+					ActualDamage = 0.1f;
 				}
 				if (HitActor)
 				{
@@ -281,6 +321,11 @@ void ASRGun::PlayFireEffects(FVector TracerEnd, FHitResult HitRes)
 	{	
 		UGameplayStatics::PlaySoundAtLocation(this, FireSFX, MuzzleLocation, FRotator(0, 0, 0));
 	}
+	if(HitSFX)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HitSFX, HitRes.Location, FRotator(0, 0, 0));
+	}
+	
 	MyCharacter->GunRecoil(HorizontalRecoil,VerticalRecoil);
 }
 

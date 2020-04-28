@@ -9,6 +9,8 @@
 #include "Components/PrimitiveComponent.h"
 #include "Components/SphereComponent.h"
 #include "Public/Character/SRCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
 
 // Sets default values
 ASRSpaceShip::ASRSpaceShip()
@@ -50,6 +52,9 @@ ASRSpaceShip::ASRSpaceShip()
 	// Spawn Zone
 	ExitShipZone = CreateDefaultSubobject<USceneComponent>(TEXT("ExitShipZone"));
 	ExitShipZone->SetupAttachment(RootComponent);
+
+	// Audio Component
+	DirectionalMovementAudioComp = CreateDefaultSubobject<UAudioComponent>(TEXT("DirectionalMovementAudioComp"));
 }
 
 // Called when the game starts or when spawned

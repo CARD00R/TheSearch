@@ -1167,7 +1167,7 @@ void ASRCharacter::OnHealthChanged(USRHealthComponent* HealthComp, float Health,
 		}
 		else
 		{
-			DropWeapon();
+			//DropWeapon();
 		}
 			// Movement Comp
 		GetMovementComponent()->StopMovementImmediately();
@@ -1336,7 +1336,7 @@ void ASRCharacter::PullTrigger()
 		{
 			EquippedWeapon->StartFire();
 			//NoiseEmitterComp->MakeNoise(this, 1, GetActorLocation());
-			NoiseCreator();
+			//NoiseCreator();
 		}
 	}
 }
@@ -1701,34 +1701,26 @@ void ASRCharacter::AIDropWeapon()
 	{
 		if (bAimPressed)
 		{
-			AimReleased();
+			//AimReleased();
 		}
 		if (EquippedWeapon == PrimaryWeapon)
 		{
 			EquippedWeapon->BulletSpread = 0.0f;
-			EquippedWeapon->CurrentBulletsInMag = FMath::FRandRange(0, EquippedWeapon->MagSize);
-			EquippedWeapon->BulletsInReserve = FMath::FRandRange(0, 16.0f);
+			EquippedWeapon->CurrentBulletsInMag = FMath::FRandRange(EquippedWeapon->RandomBulletsInMagMIN, EquippedWeapon->RandomBulletsInMagMAX);
+			EquippedWeapon->BulletsInReserve = FMath::FRandRange(EquippedWeapon->RandomBulletsInReserveMIN, EquippedWeapon->RandomBulletsInReserveMAX);
 
 			EquippedWeapon->DroppedCollisionPreset();
+			ReleaseTrigger();
 			EquippedWeapon->SetOwner(nullptr);
 			EquippedWeapon->SetPickedUpState(false);
+			
 			EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-			//EquippedWeapon = nullptr;
+			//
+			EquippedWeapon = nullptr;
 			PrimaryWeapon = nullptr;
 			//UE_LOG(LogTemp, Error, TEXT("You have PW equipped and wish to drop it"));
-
-			if (SecondaryWeapon)
-			{
-				EquippedWeapon = SecondaryWeapon;
-				EquippedWeapon->PlayHolsterMontage();
-				//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
-			}
-			else
-			{
-				bGunHolstered = true;
-			}
 		}
-		else if (EquippedWeapon == SecondaryWeapon)
+		/*else if (EquippedWeapon == SecondaryWeapon)
 		{
 
 			EquippedWeapon->DroppedCollisionPreset();
@@ -1753,7 +1745,7 @@ void ASRCharacter::AIDropWeapon()
 		else
 		{
 			bGunHolstered = true;
-		}
+		}*/
 	}
 }
 void ASRCharacter::AISpawnAndEquipWeapon()

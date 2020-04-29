@@ -125,7 +125,7 @@ protected:
 	FTimerHandle FireTimer;
 public:
 	
-	void StartFire();
+	void StartFire(bool bisAdsing, bool bisAi);
 	
 	void StopFire();
 

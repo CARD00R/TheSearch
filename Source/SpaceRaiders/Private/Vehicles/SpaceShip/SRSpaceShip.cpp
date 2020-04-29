@@ -83,11 +83,6 @@ void ASRSpaceShip::Tick(float DeltaTime)
 	{
 		if(PilotClass)
 		{
-			//LookUp(0);
-			//LookRight(0);
-			//MoveForward(0);
-			//MoveRight(0);
-			//RollRight(0);
 			MoveUp(-1.0f);
 			BoostForwardReleased();
 			
@@ -141,12 +136,29 @@ void ASRSpaceShip::ExitShip()
 			}
 
 			ASRCharacter* player = world->SpawnActor<ASRCharacter>(PilotClass, spawnLocation, rotator, spawnParams);
-
+			
+			player->GetWeapons(PrimaryWeapon, SecondaryWeapon);
+			PrimaryWeapon = nullptr;
+			SecondaryWeapon = nullptr;
 			bShipOff = true;
 		}
 		
 	}
 }
+
+void ASRSpaceShip::StoreWeapons(ASRGun * Primary, ASRGun * Secondary)
+{
+	if(Primary)
+	{
+		PrimaryWeapon = Primary;
+	}
+	if(Secondary)
+	{
+		SecondaryWeapon = Secondary;
+	}
+}
+
+
 
 void ASRSpaceShip::OnOverlapBegin(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {

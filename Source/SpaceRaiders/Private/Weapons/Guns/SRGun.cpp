@@ -108,7 +108,15 @@ void ASRGun::Fire()
 				float ActualDamage = BaseDamage;
 				if (ObjectSurfaceType == SURFACE_CHARHEAD)
 				{
-					ActualDamage *= 3.0f;
+					if(ActualDamage > 30 && BulletSpread < 1.9)
+					{
+						ActualDamage *= 4.0f;
+					}
+					else
+					{
+						ActualDamage *= 2.2f;
+					}
+					
 					if (MyPlayer->AIGun == nullptr)
 					{
 						//UE_LOG(LogTemp, Error, TEXT("Player"));
@@ -122,7 +130,7 @@ void ASRGun::Fire()
 				}
 				else if (ObjectSurfaceType == SURFACE_CHARCHEST)
 				{
-					ActualDamage *= 1.3f;
+					ActualDamage *= 1.0f;
 					if (MyPlayer->AIGun == nullptr)
 					{
 						//UE_LOG(LogTemp, Error, TEXT("Player"));
@@ -239,8 +247,20 @@ void ASRGun::Fire()
 	}
 }
 
-void ASRGun::StartFire()
+void ASRGun::StartFire(bool bisAdsing, bool bisAi)
 {
+	if(!bisAi)
+	{
+		if (bisAdsing)
+		{
+			BulletSpread = 0.0f;
+		}
+		else
+		{
+			BulletSpread = 1.5f;
+		}
+	}
+	
 	if(CurrentBulletsInMag > 0)
 	{
 		float FirstDelay = FMath::Max(LastFiredTime + TimeBetweenShots - GetWorld()->TimeSeconds, 0.0f);

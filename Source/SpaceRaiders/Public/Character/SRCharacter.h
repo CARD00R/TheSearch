@@ -18,7 +18,7 @@ class UCharacterMovementComponent;
 class ASRSpaceShip;
 class UMaterialInterface;
 class UPawnNoiseEmitterComponent;
-
+class UUserWidget;
 UENUM(BlueprintType)
 enum class EStanceStatus : uint8
 {
@@ -306,7 +306,9 @@ protected:
 
 	// AI
 		// Variables
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI")
+	UMaterialInterface* BlackMat;
+	
 	void AIDropWeapon();
 
 	
@@ -355,6 +357,8 @@ public:
 	// Weapon
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
 	ASRGun* EquippedWeapon;
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
+	ASRGun* HolsteredWeapon;
 	void SetProximityGunPickUp(ASRGun* Gun);
 	void SetProxmityUtilityPickup(ASRPickup*  UtilityPickup);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Weapon")
@@ -396,7 +400,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Appearance")
 	void SetAIEyeMaterial(UMaterialInterface* MaterialToChangeTo, int32 MatIndex );
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
-		TSubclassOf<class ASRGun> AIGun;
+	TSubclassOf<class ASRGun> AIGun;
 	
 	// Weapon Affecting Character
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death")
@@ -420,9 +424,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
 	int HealthUtilityCount;
 	int StaminaUtilityCount;
-
+	void GetWeapons(ASRGun* Primary, ASRGun* Secondary);
 	//UI
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Player")
 	void HitMarkerVisibility(bool shouldBeVisible, bool isHeadShot);
+
+	bool isAI;
+	
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Player")
+	void FailedMissionUI();
+
 };
 

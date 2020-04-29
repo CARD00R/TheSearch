@@ -18,6 +18,7 @@
 #include "Animation/AnimInstance.h"
 #include "Public/Vehicles/SpaceShip/SRSpaceShip.h"
 #include "Components/PawnNoiseEmitterComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ASRCharacter::ASRCharacter()
@@ -674,6 +675,7 @@ void ASRCharacter::GetWeapons(ASRGun * Primary, ASRGun * Secondary)
 	
 	UE_LOG(LogTemp, Error, TEXT("GETTING GUNS"));
 }
+
 
 void ASRCharacter::PickupUtility(ASRPickup * UtilityToPickup)
 {
@@ -1760,8 +1762,8 @@ void ASRCharacter::AIDropWeapon()
 		if (EquippedWeapon == PrimaryWeapon)
 		{
 			EquippedWeapon->BulletSpread = 0.0f;
-			EquippedWeapon->CurrentBulletsInMag = FMath::FRandRange(EquippedWeapon->RandomBulletsInMagMIN, EquippedWeapon->RandomBulletsInMagMAX);
-			EquippedWeapon->BulletsInReserve = FMath::FRandRange(EquippedWeapon->RandomBulletsInReserveMIN, EquippedWeapon->RandomBulletsInReserveMAX);
+			EquippedWeapon->CurrentBulletsInMag = UKismetMathLibrary::RandomIntegerInRange(EquippedWeapon->RandomBulletsInMagMIN, EquippedWeapon->RandomBulletsInMagMAX);
+			EquippedWeapon->BulletsInReserve = UKismetMathLibrary::RandomIntegerInRange(EquippedWeapon->RandomBulletsInReserveMIN, EquippedWeapon->RandomBulletsInReserveMAX);
 
 			EquippedWeapon->DroppedCollisionPreset();
 			ReleaseTrigger();

@@ -15,6 +15,7 @@
 class APawn;
 class ASRCharacter;
 class ASRGun;
+class UCameraShake;
 
 UCLASS()
 class SPACERAIDERS_API USRCharacterAnimInstance : public UAnimInstance
@@ -133,6 +134,7 @@ protected:
 public:
 
 	virtual void NativeInitializeAnimation() override;
+	
 
 
 	

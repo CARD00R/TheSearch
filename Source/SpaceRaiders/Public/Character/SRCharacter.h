@@ -19,6 +19,8 @@ class ASRSpaceShip;
 class UMaterialInterface;
 class UPawnNoiseEmitterComponent;
 class UUserWidget;
+class UCameraShake;
+
 UENUM(BlueprintType)
 enum class EStanceStatus : uint8
 {
@@ -433,6 +435,10 @@ public:
 	
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Player")
 	void FailedMissionUI();
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	TSubclassOf<UCameraShake> ReloadCameraShake;
 
+	
 };
 

@@ -283,6 +283,7 @@ void ASRGun::PlayFireEffects(FVector TracerEnd, FHitResult HitRes)
 {
 	ASRCharacter* MyCharacter = Cast<ASRCharacter>(GetOwner());
 	APawn* MyPawn = Cast<APawn>(GetOwner());
+	
 	FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
 	
 	if (MuzzleEffect)

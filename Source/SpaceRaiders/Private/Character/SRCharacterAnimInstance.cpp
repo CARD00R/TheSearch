@@ -152,6 +152,12 @@ void USRCharacterAnimInstance::ResetFallHeight()
 void USRCharacterAnimInstance::ReloadBullets()
 {
 	Character->EquippedWeapon->Reload();
+	APawn* MyPawn = Cast<APawn>(Character);
+	APlayerController* PC = Cast<APlayerController>(MyPawn->GetController());
+	if (PC)
+	{
+		PC->ClientPlayCameraShake(Character->ReloadCameraShake);
+	}
 }
 
 void USRCharacterAnimInstance::ReloadEnd()

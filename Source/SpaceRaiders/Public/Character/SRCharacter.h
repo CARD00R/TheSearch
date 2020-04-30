@@ -439,7 +439,13 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<UCameraShake> ReloadCameraShake;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	TSubclassOf<UCameraShake> HealCameraShake;
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "AI")
+		void KillBrain();
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health")
+		USoundBase* Heal;
 };
 

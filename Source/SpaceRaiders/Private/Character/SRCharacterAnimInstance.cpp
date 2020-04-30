@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Weapons/Guns/SRGun.h"
 #include "Public/Components/SRHealthComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 void USRCharacterAnimInstance::NativeInitializeAnimation()
 {
@@ -200,6 +201,9 @@ void USRCharacterAnimInstance::HealCharacter()
 			if (PC)
 			{
 				PC->ClientPlayCameraShake(Character->ReloadCameraShake);
+				PC->ClientPlayCameraShake(Character->HealCameraShake);
+				//Heal
+				UGameplayStatics::PlaySound2D(this, Character->Heal,0.7f);
 			}
 		}
 

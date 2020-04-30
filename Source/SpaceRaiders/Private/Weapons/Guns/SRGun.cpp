@@ -40,6 +40,7 @@ ASRGun::ASRGun()
 	TracerTargetName = "Target";
 	IsPickedUp = true;
 	BulletSpread = 2.0f;
+	IsPickedUp = false;
 }
 
 void ASRGun::BeginPlay()

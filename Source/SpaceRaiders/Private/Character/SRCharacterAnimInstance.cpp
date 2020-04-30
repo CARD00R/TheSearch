@@ -195,6 +195,12 @@ void USRCharacterAnimInstance::HealCharacter()
 		{
 			Character->OwningHealthComp->SetHealth(Character->HealthPackAddition);
 			Character->HealthUtilityCount--;
+			APawn* MyPawn = Cast<APawn>(Character);
+			APlayerController* PC = Cast<APlayerController>(MyPawn->GetController());
+			if (PC)
+			{
+				PC->ClientPlayCameraShake(Character->ReloadCameraShake);
+			}
 		}
 
 	}

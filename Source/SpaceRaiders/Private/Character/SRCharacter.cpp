@@ -96,7 +96,8 @@ void ASRCharacter::BeginPlay()
 	OwningHealthComp->OnHealthChanged.AddDynamic(this, &ASRCharacter::OnHealthChanged);
 	CharMovementComp = GetCharacterMovement();
 
-
+	HealthUtilityCount = 5.0f;
+	
 	// AI
 
 	if(AIGun)
@@ -1213,8 +1214,8 @@ void ASRCharacter::OnHealthChanged(USRHealthComponent* HealthComp, float Health,
 			AIDropWeapon();
 			if (BlackMat)
 			{
-				SetAIEyeMaterial(BlackMat, 1);
-				UE_LOG(LogTemp, Error, TEXT("BLACK!"));
+				//SetAIEyeMaterial(BlackMat, 1);
+				//UE_LOG(LogTemp, Error, TEXT("BLACK!"));
 			}
 		}
 		else

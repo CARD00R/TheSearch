@@ -338,6 +338,7 @@ protected:
 	// Ship
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ship")
 	ASRSpaceShip* ShipCloseTo;
+	UFUNCTION(BlueprintCallable)
 	void EnterShip();
 
 	
@@ -401,7 +402,7 @@ public:
 	// Ai 
 	UFUNCTION(BlueprintCallable, Category = "Appearance")
 	void SetAIEyeMaterial(UMaterialInterface* MaterialToChangeTo, int32 MatIndex );
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	TSubclassOf<class ASRGun> AIGun;
 	
 	// Weapon Affecting Character

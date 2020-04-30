@@ -138,7 +138,7 @@ public:
 	
 
 	//States
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Weapon")
 	bool IsPickedUp;
 	// Montages
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
